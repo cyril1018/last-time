@@ -1,6 +1,7 @@
 import type { Item, ItemRecord, Settings, Theme } from './types'
 import { normalizeExpectDays, normalizeName } from './calc'
 import { DEFAULT_EMOJI } from './emoji'
+import { dedupeById } from './collections'
 
 export const BACKUP_APP = 'lasttime'
 export const BACKUP_VERSION = 1
@@ -35,11 +36,6 @@ const THEMES: readonly Theme[] = ['system', 'light', 'dark']
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const nonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
-
-/** Last row per id wins (the order of first appearance is kept). */
-function dedupeById<T extends { id: string }>(xs: T[]): T[] {
-  return [...new Map(xs.map((x) => [x.id, x] as const)).values()]
-}
 
 function toItem(raw: unknown): Item | null {
   if (!isObj(raw)) return null

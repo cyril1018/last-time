@@ -1,7 +1,7 @@
 <script lang="ts">
   import { store } from '../lib/app-store'
   import { router } from '../lib/router.svelte'
-  import { recent7, backupBannerVisible, normalizeName, DAY_MS } from '../lib/calc'
+  import { recent7, backupBannerVisible, DAY_MS } from '../lib/calc'
   import { homeView } from '../lib/home-view'
   import { logAndToast } from '../lib/log-flow'
   import { exclusive } from '../lib/exclusive'
@@ -20,7 +20,6 @@
   if (wantFocus) history.replaceState(history.state, '', location.pathname + location.hash)
 
   const stats = $derived(recent7(store.items, store.lastTs, store.now))
-  const q = $derived(normalizeName(query))
   const view = $derived(homeView(store.items, store.lastTs, query))
   const showBanner = $derived(backupBannerVisible(store.records.length, store.settings, store.now))
 
@@ -47,7 +46,7 @@
 
   function submit() {
     return guarded(async () => {
-      const name = q
+      const name = view.query
       if (!name) return
       // Clear right away so the add row disappears before the write lands; put the text back if it fails.
       const typed = query
@@ -82,7 +81,7 @@
     <ul class="list">
       {#if view.showAdd}
         <li class="add">
-          <button onclick={submit}>{view.addLabelKind === 'restore' ? `＋ 恢復『${q}』，以現在的時間記一筆` : `＋ 新增『${q}』，以現在的時間記下第一筆`}</button>
+          <button onclick={submit}>{view.addLabelKind === 'restore' ? `＋ 恢復『${view.query}』，以現在的時間記一筆` : `＋ 新增『${view.query}』，以現在的時間記下第一筆`}</button>
         </li>
       {/if}
       {#each view.visible as item (item.id)}

@@ -75,3 +75,10 @@ describe('homeView empty state (onboarding)', () => {
     expect(v.archivedCount).toBe(1)
   })
 })
+
+describe('homeView query', () => {
+  it('returns the normalized query the add row and submit use', () => {
+    expect(homeView(items, lastTs, '  吃藥  ').query).toBe('吃藥')
+    expect(homeView(items, lastTs, '   ').query).toBe('')
+  })
+})

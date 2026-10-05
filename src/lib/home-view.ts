@@ -2,6 +2,8 @@ import { normalizeName, sortItemsForHome } from './calc'
 import type { Item } from './types'
 
 export interface HomeView {
+  /** The normalized query (trimmed, inner spaces collapsed); '' when blank. */
+  query: string
   /** Unarchived items in home order, filtered by the query (case-insensitive "name contains"). */
   visible: Item[]
   /** The item whose name equals the normalized query exactly, archived or not. */
@@ -21,10 +23,10 @@ export function homeView(items: Item[], lastTs: Map<string, number>, query: stri
   const sorted = sortItemsForHome(items, lastTs)
   const q = normalizeName(query)
   const archivedCount = items.length - sorted.length
-  if (!q) return { visible: sorted, exact: undefined, showAdd: false, addLabelKind: null, empty: sorted.length === 0, archivedCount }
+  if (!q) return { query: q, visible: sorted, exact: undefined, showAdd: false, addLabelKind: null, empty: sorted.length === 0, archivedCount }
   const needle = q.toLowerCase()
   const visible = sorted.filter((i) => i.name.toLowerCase().includes(needle))
   const exact = items.find((i) => i.name === q)
   const showAdd = !exact || exact.archived
-  return { visible, exact, showAdd, addLabelKind: showAdd ? (exact?.archived ? 'restore' : 'add') : null, empty: false, archivedCount }
+  return { query: q, visible, exact, showAdd, addLabelKind: showAdd ? (exact?.archived ? 'restore' : 'add') : null, empty: false, archivedCount }
 }

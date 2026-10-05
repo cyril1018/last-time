@@ -6,6 +6,7 @@ import { loadSettings, saveSettings, type KeyValueStorage } from './settings'
 import { nextId } from './ids'
 import { guessEmoji } from './emoji'
 import { normalizeName, normalizeExpectDays, lastTsByItem } from './calc'
+import { dedupeById } from './collections'
 import { DEFAULT_SETTINGS, type Item, type ItemRecord, type Settings } from './types'
 
 export class FutureTimeError extends Error {
@@ -35,11 +36,6 @@ export interface LogResult {
 interface Data {
   items: Item[]
   records: ItemRecord[]
-}
-
-/** Last occurrence of each id wins, like a bulkPut of the same list. */
-function dedupeById<T extends { id: string }>(xs: readonly T[]): T[] {
-  return [...new Map(xs.map((x) => [x.id, x] as const)).values()]
 }
 
 /** Insert or replace by id, like a bulkPut onto an existing table. */
