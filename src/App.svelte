@@ -3,6 +3,7 @@
   import { router } from './lib/router.svelte'
   import { sheets } from './lib/sheet.svelte'
   import Toast from './components/Toast.svelte'
+  import Home from './components/Home.svelte'
 
   // Theme: data-theme on <html> + theme-color meta
   $effect(() => {
@@ -29,7 +30,7 @@
 
 {#if store.ready}
   {#if router.route.name === 'home'}
-    <p class="page">首頁（Task 10）</p>
+    <Home />
   {:else if router.route.name === 'item'}
     <p class="page">細節（Task 11）</p>
   {:else}
