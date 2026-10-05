@@ -8,6 +8,26 @@ export type SheetState =
   | { kind: 'import'; backup: ParsedBackup }
   | null
 
+type RestorableSheet = Exclude<NonNullable<SheetState>, { kind: 'import' }>
+
+/** A sheet marker we can reopen: it has to come back from history.state, so check its shape. */
+function asRestorable(m: unknown): RestorableSheet | null {
+  if (m === null || typeof m !== 'object') return null
+  const o = m as Record<string, unknown>
+  if ((o['kind'] === 'edit-item' || o['kind'] === 'backdate') && typeof o['itemId'] === 'string') {
+    return { kind: o['kind'], itemId: o['itemId'] }
+  }
+  if (o['kind'] === 'edit-record' && typeof o['recordId'] === 'string') {
+    return { kind: 'edit-record', recordId: o['recordId'] }
+  }
+  return null
+}
+
+/** Marker value stored in history: the sheet itself, except import (a whole backup; not meant to survive). */
+function markFor(s: NonNullable<SheetState>): RestorableSheet | true {
+  return s.kind === 'import' ? true : s
+}
+
 class Sheets {
   current = $state.raw<SheetState>(null)
 
@@ -15,19 +35,30 @@ class Sheets {
     startHistory()
     // Back key / history.back(): the entry we land on decides whether a sheet is open.
     onHistorySync(() => {
-      if (sheetMark() === undefined) this.current = null
+      const m = sheetMark()
+      if (m === undefined) this.current = null
+      else if (!this.current) this.current = asRestorable(m) // forward onto a sheet entry
     })
+    // Reload or tab reclaim keeps history.state: reopen the sheet that was on top (its component reloads
+    // its draft). An import marker, or anything unusable, is a dead entry: drop it so back is not wasted.
+    const m = sheetMark()
+    if (m === undefined) return
+    const restored = asRestorable(m)
+    if (restored) this.current = restored
+    else whenSettled(() => back())
   }
 
   open(s: NonNullable<SheetState>): void {
     whenSettled(() => {
       if (this.current) {
-        this.current = s // swap in place, keep the single history entry
+        // Swap in place, keep the single history entry, but record what is shown now.
+        this.current = s
+        if (sheetMark() !== undefined) history.replaceState({ ...currentState(), [SHEET_MARK]: markFor(s) }, '')
         return
       }
       this.current = s
       // Keep the page's depth on the marker entry so router.home() can still count its way back.
-      history.pushState({ ...currentState(), [SHEET_MARK]: true }, '')
+      history.pushState({ ...currentState(), [SHEET_MARK]: markFor(s) }, '')
     })
   }
 

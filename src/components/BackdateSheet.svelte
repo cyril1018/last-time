@@ -31,6 +31,9 @@
 
   const marked = $derived(new Set(store.recordsOf(initialId).map((r) => toDateKey(r.ts))))
 
+  // Item gone (creation undone, or missing after a reload): nothing to add to.
+  $effect(() => { if (!store.itemById(initialId)) sheets.close() })
+
   function toggle(key: string) {
     const next = new Set(selected)
     if (next.has(key)) next.delete(key); else next.add(key)

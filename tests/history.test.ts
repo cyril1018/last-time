@@ -118,3 +118,55 @@ describe('router depth bookkeeping', () => {
     expect(router.route).toEqual({ name: 'item', id: 'x' })
   })
 })
+
+describe('sheet restore after reload / tab reclaim', () => {
+  it('stores the sheet on its marker entry and restores it on start; back then closes it', async () => {
+    router.navigate({ name: 'item', id: 'x' })
+    sheets.open({ kind: 'edit-record', recordId: 'r1' })
+    expect((b.top.state as Record<string, unknown>)['lasttime-sheet']).toEqual({ kind: 'edit-record', recordId: 'r1' })
+
+    await boot(b.reload())
+    expect(router.route).toEqual({ name: 'item', id: 'x' })
+    expect(sheets.current).toEqual({ kind: 'edit-record', recordId: 'r1' })
+    expect(b.index).toBe(2)
+
+    b.systemBack(); await b.flush()
+    expect(sheets.current).toBeNull()
+    expect(router.route).toEqual({ name: 'item', id: 'x' })
+    b.systemBack(); await b.flush()
+    expect(router.route).toEqual({ name: 'home' })
+    expect(b.left).toBe(false)
+  })
+
+  it('swapping the open sheet updates the marker, so reload restores the sheet actually shown', async () => {
+    router.navigate({ name: 'item', id: 'x' })
+    sheets.open({ kind: 'backdate', itemId: 'x' })
+    sheets.open({ kind: 'edit-record', recordId: 'r9' })
+    expect(b.entries).toHaveLength(3)
+    await boot(b.reload())
+    expect(sheets.current).toEqual({ kind: 'edit-record', recordId: 'r9' })
+  })
+
+  it('does not store an import backup in history; on reload the dead entry is dropped', async () => {
+    router.navigate({ name: 'settings' })
+    sheets.open({ kind: 'import', backup: { items: [], records: [] } as never })
+    expect((b.top.state as Record<string, unknown>)['lasttime-sheet']).toBe(true)
+    expect(depthOf(b.top.state)).toBe(1)
+
+    await boot(b.reload())
+    expect(sheets.current).toBeNull()
+    expect(b.index).toBe(1)
+    expect(router.route).toEqual({ name: 'settings' })
+    b.systemBack(); await b.flush()
+    expect(router.route).toEqual({ name: 'home' })
+  })
+
+  it('drops a marker that is not a usable sheet', async () => {
+    await boot(new FakeBrowser('', null, [
+      { state: null, hash: '#/' },
+      { state: { depth: 0, 'lasttime-sheet': { kind: 'edit-item' } }, hash: '#/' },
+    ], 1))
+    expect(sheets.current).toBeNull()
+    expect(b.index).toBe(0)
+  })
+})

@@ -44,14 +44,18 @@
   {/if}
 {/if}
 
-{#if sheets.current?.kind === 'edit-item'}
-  {#key sheets.current.itemId}<EditItemSheet itemId={sheets.current.itemId} />{/key}
-{:else if sheets.current?.kind === 'edit-record'}
-  {#key sheets.current.recordId}<EditRecordSheet recordId={sheets.current.recordId} />{/key}
-{:else if sheets.current?.kind === 'backdate'}
-  {#key sheets.current.itemId}<BackdateSheet itemId={sheets.current.itemId} />{/key}
-{:else if sheets.current?.kind === 'import'}
-  <ImportSheet backup={sheets.current.backup} />
+<!-- A sheet restored from history on reload waits for the data: it seeds its form from the store and
+     closes itself when its item/record is missing, which must not be judged on an empty store. -->
+{#if store.ready}
+  {#if sheets.current?.kind === 'edit-item'}
+    {#key sheets.current.itemId}<EditItemSheet itemId={sheets.current.itemId} />{/key}
+  {:else if sheets.current?.kind === 'edit-record'}
+    {#key sheets.current.recordId}<EditRecordSheet recordId={sheets.current.recordId} />{/key}
+  {:else if sheets.current?.kind === 'backdate'}
+    {#key sheets.current.itemId}<BackdateSheet itemId={sheets.current.itemId} />{/key}
+  {:else if sheets.current?.kind === 'import'}
+    <ImportSheet backup={sheets.current.backup} />
+  {/if}
 {/if}
 
 <Toast />

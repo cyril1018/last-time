@@ -29,6 +29,9 @@
 
   const recordCount = $derived(store.recordsOf(initialId).length)
 
+  // Item gone (deleted elsewhere, creation undone, or missing after a reload): nothing left to edit.
+  $effect(() => { if (!store.itemById(initialId)) sheets.close() })
+
   const save = exclusive(async () => {
     try {
       await store.updateItem(initialId, { name, emoji, expectDays, archived })
