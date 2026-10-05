@@ -26,11 +26,11 @@
   // runs this teardown, so the draft survives reclaim.
   $effect(() => () => clearDraft(KEY))
 
-  const recordCount = $derived(store.recordsOf(itemId).length)
+  const recordCount = $derived(store.recordsOf(initialId).length)
 
   async function save() {
     try {
-      await store.updateItem(itemId, { name, emoji, expectDays, archived })
+      await store.updateItem(initialId, { name, emoji, expectDays, archived })
       clearDraft(KEY)
       sheets.close()
     } catch (e) {
@@ -42,8 +42,12 @@
     if (!confirm(`刪除「${item?.name ?? ''}」？會連同 ${recordCount} 筆紀錄一起刪除，無法復原。`)) return
     clearDraft(KEY)
     sheets.closeThen(async () => {
-      await store.deleteItem(itemId)
-      router.replace({ name: 'home' })
+      try {
+        await store.deleteItem(initialId)
+        router.replace({ name: 'home' })
+      } catch {
+        toasts.show('刪除失敗，請再試一次')
+      }
     })
   }
 </script>

@@ -11,14 +11,17 @@
   let { recordId }: { recordId: string } = $props()
   // The parent keys this sheet by recordId, so the initial value is the only one this instance ever sees.
   const initialId = untrack(() => recordId)
-  const record = store.recordById(initialId)
+  const record = $derived(store.recordById(initialId))
+  // Snapshot of the record at open time: seeds the form and detects an untouched time field.
+  const initial = untrack(() => record)
+  const initialWhen = initial ? toDatetimeLocalValue(initial.ts) : ''
   const item = $derived(record ? store.itemById(record.itemId) : undefined)
   const KEY = `edit-record.${initialId}`
   type Draft = { when: string; note: string }
   const draft = loadDraft<Draft>(KEY)
 
-  let when = $state(draft?.when ?? (record ? toDatetimeLocalValue(record.ts) : ''))
-  let note = $state(draft?.note ?? record?.note ?? '')
+  let when = $state(draft?.when ?? initialWhen)
+  let note = $state(draft?.note ?? initial?.note ?? '')
   $effect(() => { saveDraft(KEY, { when, note } satisfies Draft) })
   // Cancelling (back / backdrop) unmounts the sheet and discards the draft. A tab killed by the OS never
   // runs this teardown, so the draft survives reclaim.
@@ -27,10 +30,15 @@
   const max = $derived(toDatetimeLocalValue(store.now))
 
   async function save() {
-    const ts = fromDatetimeLocalValue(when)
-    if (ts === null) { toasts.show('請選擇時間'); return }
+    // `when` is minute-truncated: only send ts when the user changed it, so a note-only edit keeps the original seconds.
+    const patch: { ts?: number; note: string } = { note: note.trim() }
+    if (when !== initialWhen) {
+      const ts = fromDatetimeLocalValue(when)
+      if (ts === null) { toasts.show('請選擇時間'); return }
+      patch.ts = ts
+    }
     try {
-      await store.updateRecord(recordId, { ts, note: note.trim() })
+      await store.updateRecord(initialId, patch)
       clearDraft(KEY)
       sheets.close()
     } catch (e) {
@@ -40,8 +48,13 @@
 
   async function remove() {
     if (!confirm('刪除這筆紀錄？')) return
+    try {
+      await store.deleteRecord(initialId)
+    } catch {
+      toasts.show('刪除失敗，請再試一次')
+      return
+    }
     clearDraft(KEY)
-    await store.deleteRecord(recordId)
     sheets.close()
   }
 

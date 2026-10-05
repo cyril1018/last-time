@@ -45,8 +45,7 @@
   {#key sheets.current.itemId}<EditItemSheet itemId={sheets.current.itemId} />{/key}
 {:else if sheets.current?.kind === 'edit-record'}
   {#key sheets.current.recordId}<EditRecordSheet recordId={sheets.current.recordId} />{/key}
+  <!-- Task 14–15: add the backdate and import branches here -->
 {/if}
-<!-- Task 14–15 continue the chain with the remaining sheet kinds -->
-
 
 <Toast />
