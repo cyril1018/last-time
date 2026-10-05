@@ -40,9 +40,22 @@ describe('files', () => {
     expect(await shareText('a.json', '{}')).toBe('cancelled')
   })
 
-  it('shareText returns unsupported on other errors', async () => {
-    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(new Error('x')), canShare: () => true })
+  it('shareText returns unsupported when files cannot be shared', async () => {
+    const share = vi.fn()
+    vi.stubGlobal('navigator', { share, canShare: () => false })
     expect(await shareText('a.json', '{}')).toBe('unsupported')
+    expect(share).not.toHaveBeenCalled()
+  })
+
+  it.each(['NotAllowedError', 'DataError', 'TypeError'])('shareText returns failed when share rejects with %s', async (name) => {
+    const err = Object.assign(new Error('x'), { name })
+    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(err), canShare: () => true })
+    expect(await shareText('a.json', '{}')).toBe('failed')
+  })
+
+  it('shareText returns failed when share rejects with a non-error value', async () => {
+    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(undefined), canShare: () => true })
+    expect(await shareText('a.json', '{}')).toBe('failed')
   })
 
   it('readFileText reads file contents', async () => {

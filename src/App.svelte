@@ -54,7 +54,7 @@
   {:else if sheets.current?.kind === 'backdate'}
     {#key sheets.current.itemId}<BackdateSheet itemId={sheets.current.itemId} />{/key}
   {:else if sheets.current?.kind === 'import'}
-    <ImportSheet backup={sheets.current.backup} />
+    {#key sheets.current.backup}<ImportSheet backup={sheets.current.backup} />{/key}
   {/if}
 {/if}
 

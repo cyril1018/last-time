@@ -19,7 +19,8 @@ export function canShareFiles(): boolean {
   }
 }
 
-export type ShareOutcome = 'shared' | 'cancelled' | 'unsupported'
+/** unsupported: this device cannot share files at all. failed: it can, but this share was refused or broke. */
+export type ShareOutcome = 'shared' | 'cancelled' | 'unsupported' | 'failed'
 
 export async function shareText(filename: string, text: string): Promise<ShareOutcome> {
   if (!canShareFiles()) return 'unsupported'
@@ -28,8 +29,8 @@ export async function shareText(filename: string, text: string): Promise<ShareOu
     await navigator.share({ files: [file], title: filename })
     return 'shared'
   } catch (e) {
-    // AbortError = user dismissed the share sheet; anything else we also treat as not shared
-    return (e as { name?: string }).name === 'AbortError' ? 'cancelled' : 'unsupported'
+    // AbortError = user dismissed the share sheet. Anything else (NotAllowedError, DataError, …) is a failure.
+    return typeof e === 'object' && e !== null && (e as { name?: unknown }).name === 'AbortError' ? 'cancelled' : 'failed'
   }
 }
 

@@ -24,6 +24,7 @@
     const outcome = await shareText(formatBackupFileName(store.now), backupText())
     if (outcome === 'shared') store.updateSettings({ lastBackupAt: store.now, backupSnoozeUntil: null })
     else if (outcome === 'unsupported') toasts.show('這個裝置不支援分享檔案')
+    else if (outcome === 'failed') toasts.show('分享失敗，請改用匯出')
   }
   async function onFile(e: Event) {
     const input = e.target as HTMLInputElement
