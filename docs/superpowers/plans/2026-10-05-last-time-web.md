@@ -20,7 +20,7 @@
 - 備份格式：`{ app: "lasttime", version: 1, exportedAt, items, records, settings }`，無 `cats`、`catId`、`photos`、`hasPhoto`。
 - 所有字級用 rem；主色綠、到期紅、淺色底；深色模式跟隨系統可手動切換。
 - Vite `base` 為 `/last-time/`；網址 `https://cyril1018.github.io/last-time/`。
-- git 作者固定為 `Ted <38046383+cyril1018@users.noreply.github.com>`（repo 本地設定已存在，勿改 `--global`）。commit message 結尾加 `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`。推送前執行 `git log --format='%an <%ae>' | sort -u` 確認只有這一個身分。
+- git 作者固定為 `Ted <38046383+cyril1018@users.noreply.github.com>`（repo 本地設定已存在，勿改 `--global`）。commit message 結尾加 `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>`。推送前執行 `git log --format='%an <%ae>' | sort -u` 確認只有這一個身分。
 
 ## Review Focus
 
@@ -278,7 +278,7 @@ Expected: svelte-check 0 errors；`dist/index.html` 存在，內含 `/last-time/
 git add -A
 git commit -m "Scaffold Vite + Svelte 5 + TypeScript project with Vitest
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -394,7 +394,7 @@ Expected: 3 passed。
 git add src/lib/types.ts src/lib/ids.ts tests/ids.test.ts
 git commit -m "Add data types and 13-char id generator
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -545,7 +545,7 @@ Expected: 全部 passed。
 git add src/lib/emoji.ts tests/emoji.test.ts
 git commit -m "Add keyword-based emoji guessing
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -897,7 +897,7 @@ Expected: 全部 passed。若 DST 測試在這台機器失敗（Node 不接受�
 git add src/lib/calc.ts tests/calc.test.ts
 git commit -m "Add calendar-day and display calculations
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -1016,7 +1016,7 @@ Expected: 全部 passed。
 git add src/lib/format.ts tests/format.test.ts
 git commit -m "Add zh-TW date/time formatting helpers
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -1288,7 +1288,7 @@ Expected: 7 passed。
 git add src/lib/settings.ts src/lib/db.ts tests/settings.test.ts tests/db.test.ts
 git commit -m "Add settings persistence and Dexie data layer
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -1583,7 +1583,7 @@ Expected: 全部 passed。
 git add src/lib/backup.ts tests/backup.test.ts
 git commit -m "Add backup serialization, parsing and merge planning
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2097,7 +2097,7 @@ Expected: 全綠、0 errors。
 git add src/lib/store.svelte.ts src/lib/app-store.ts tests/store.test.ts
 git commit -m "Add reactive store with optimistic persistence
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2595,7 +2595,7 @@ Expected: 全綠；build 產出的 `dist/assets/` 含 `Fraunces-latin-*.woff2`�
 git add -A
 git commit -m "Add app shell: routing, sheets, toasts, long-press, drafts, Fraunces font
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2880,7 +2880,7 @@ Expected: 0 errors、全綠。
 git add -A
 git commit -m "Add home screen with long-press logging, undo toast and search-to-add
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3030,7 +3030,7 @@ Run: `npm run check`
 git add -A
 git commit -m "Add item detail page with timeline and summary
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3136,7 +3136,7 @@ Run: `npm run check`
 git add -A
 git commit -m "Add edit-item sheet
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3229,7 +3229,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 git add -A
 git commit -m "Add edit-record sheet
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3480,7 +3480,7 @@ Run: `npm test && npm run check`
 git add -A
 git commit -m "Add backdate sheet with multi-select month calendar
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3743,7 +3743,7 @@ Run: `npm test && npm run check && npm run build`
 git add -A
 git commit -m "Add settings page with backup export, share and import
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3856,7 +3856,7 @@ Run: `npm run build && npm run preview`
 git add -A
 git commit -m "Add PWA manifest, icons and service worker
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -3985,7 +3985,7 @@ Expected: 測試全綠；作者只有 `Ted <38046383+cyril1018@users.noreply.git
 git add -A
 git commit -m "Add GitHub Pages deploy workflow, README and license
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 git push -u origin main
 ```
 
