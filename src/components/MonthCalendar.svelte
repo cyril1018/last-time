@@ -28,7 +28,7 @@
   .cell.out { opacity: 0.35; }
   .cell:disabled { color: var(--muted); opacity: 0.4; }
   .cell.today { box-shadow: inset 0 0 0 2px var(--accent); }
-  .cell.sel { background: var(--accent); color: #fff; }
+  .cell.sel { background: var(--accent); color: var(--on-accent); }
   .mark { position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
-  .cell.sel .mark { background: #fff; }
+  .cell.sel .mark { background: var(--on-accent); }
 </style>
