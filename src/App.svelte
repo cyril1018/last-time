@@ -4,6 +4,7 @@
   import { sheets } from './lib/sheet.svelte'
   import Toast from './components/Toast.svelte'
   import Home from './components/Home.svelte'
+  import ItemDetail from './components/ItemDetail.svelte'
 
   // Theme: data-theme on <html> + theme-color meta
   $effect(() => {
@@ -32,7 +33,7 @@
   {#if router.route.name === 'home'}
     <Home />
   {:else if router.route.name === 'item'}
-    <p class="page">細節（Task 11）</p>
+    <ItemDetail id={router.route.id} />
   {:else}
     <p class="page">設定（Task 15）</p>
   {/if}
