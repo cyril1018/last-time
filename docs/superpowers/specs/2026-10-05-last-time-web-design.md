@@ -293,7 +293,7 @@ UTF-8 JSON。
 
 ## 9. 離線、安裝、更新
 
-- Manifest：名稱「上次」、`display: standalone`、`start_url: ./`、主題色與背景色、icon 192 / 512（含 maskable）、一個固定捷徑「新增項目」指向 `./#/?focus=1`（首頁開啟後聚焦輸入框）。
+- Manifest：名稱「上次」、`display: standalone`、`start_url: ./`、主題色與背景色、icon 192 / 512（含 maskable）、一個固定捷徑「新增項目」指向 `./?focus=1#/`（首頁開啟後聚焦輸入框，並把 query 從網址移除）。
 - Service Worker 預先快取全部打包資源（含字型），導覽請求離線時回應 `index.html`。
 - 更新策略：新版 Service Worker 下載完成後**不立即接管**，等下次開啟（所有分頁關閉後）才切換，避免使用中突然重整。
 - 不註冊任何推播或背景同步。
