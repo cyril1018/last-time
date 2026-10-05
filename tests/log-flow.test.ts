@@ -10,14 +10,12 @@ import { logAndToast } from '../src/lib/log-flow'
 import { toasts } from '../src/lib/toast.svelte'
 import { vibrate } from '../src/lib/haptics'
 import { EmptyNameError, FutureTimeError, type LogResult } from '../src/lib/store.svelte'
+import type { Item, ItemRecord } from '../src/lib/types'
 
 const ts = new Date(2026, 9, 5, 9, 5).getTime()
-const result: LogResult = {
-  record: { id: 'r000000000001', itemId: 'i000000000001', ts, note: '' },
-  item: { id: 'i000000000001', name: '吃藥', emoji: '💊', expectDays: null, archived: false, createdAt: ts },
-  itemCreated: true,
-  itemUnarchived: false,
-} as unknown as LogResult
+const item: Item = { id: 'i000000000001', name: '吃藥', emoji: '💊', expectDays: null, archived: false, created: ts }
+const record: ItemRecord = { id: 'r000000000001', itemId: item.id, ts, note: '' }
+const result: LogResult = { record, item, itemCreated: true, itemUnarchived: false }
 
 beforeEach(() => {
   toasts.dismiss()

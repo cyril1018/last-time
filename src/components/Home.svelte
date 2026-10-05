@@ -1,7 +1,8 @@
 <script lang="ts">
   import { store } from '../lib/app-store'
   import { router } from '../lib/router.svelte'
-  import { sortItemsForHome, recent7, backupBannerVisible, normalizeName, DAY_MS } from '../lib/calc'
+  import { recent7, backupBannerVisible, normalizeName, DAY_MS } from '../lib/calc'
+  import { homeView } from '../lib/home-view'
   import { logAndToast } from '../lib/log-flow'
   import { exclusive } from '../lib/exclusive'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
@@ -18,11 +19,9 @@
   const wantFocus = new URLSearchParams(location.search).get('focus') === '1'
   if (wantFocus) history.replaceState(history.state, '', location.pathname + location.hash)
 
-  const sorted = $derived(sortItemsForHome(store.items, store.lastTs))
   const stats = $derived(recent7(store.items, store.lastTs, store.now))
   const q = $derived(normalizeName(query))
-  const visible = $derived(q ? sorted.filter((i) => i.name.includes(q)) : sorted)
-  const exact = $derived(q ? store.findByName(q) : undefined)
+  const view = $derived(homeView(store.items, store.lastTs, query))
   const showBanner = $derived(backupBannerVisible(store.records.length, store.settings, store.now))
 
   let searchBar: ReturnType<typeof SearchBar> | undefined = $state()
@@ -75,12 +74,12 @@
     <EmptyState onpick={(t) => { query = t; searchBar?.focus() }} />
   {:else}
     <ul class="list">
-      {#if q && (!exact || exact.archived)}
+      {#if view.showAdd}
         <li class="add">
-          <button onclick={submit}>{exact?.archived ? `＋ 恢復『${q}』，以現在的時間記一筆` : `＋ 新增『${q}』，以現在的時間記下第一筆`}</button>
+          <button onclick={submit}>{view.addLabelKind === 'restore' ? `＋ 恢復『${q}』，以現在的時間記一筆` : `＋ 新增『${q}』，以現在的時間記下第一筆`}</button>
         </li>
       {/if}
-      {#each visible as item (item.id)}
+      {#each view.visible as item (item.id)}
         <ItemRow {item} lastTs={store.lastTs.get(item.id)} now={store.now} flash={flashId === item.id}
                  onopen={() => router.navigate({ name: 'item', id: item.id })}
                  onlog={() => logItem(item.id)} />
