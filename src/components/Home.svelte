@@ -27,10 +27,13 @@
   let searchBar: ReturnType<typeof SearchBar> | undefined = $state()
 
   let flashId = $state<string | null>(null)
+  let flashTimer: ReturnType<typeof setTimeout> | undefined
   function flash(id: string) {
+    clearTimeout(flashTimer)
     flashId = id
-    setTimeout(() => { if (flashId === id) flashId = null }, 700)
+    flashTimer = setTimeout(() => { flashId = null }, 700)
   }
+  $effect(() => () => clearTimeout(flashTimer))
 
   // One guard for both entry points: a double tap (or tap + Enter) never logs twice.
   const guarded = exclusive((task: () => Promise<void>) => task())
@@ -70,8 +73,11 @@
     <BackupBanner onlater={() => store.updateSettings({ backupSnoozeUntil: store.now + 7 * DAY_MS })} />
   {/if}
 
-  {#if store.items.length === 0 && !q}
+  {#if view.empty}
     <EmptyState onpick={(t) => { query = t; searchBar?.focus() }} />
+    {#if view.archivedCount > 0}
+      <p class="archived-note muted small">有 {view.archivedCount} 個已封存的項目，可在設定取消封存</p>
+    {/if}
   {:else}
     <ul class="list">
       {#if view.showAdd}
@@ -102,5 +108,6 @@
   .add { list-style: none; }
   .add button { width: 100%; text-align: left; border: 0; background: var(--accent-soft); color: var(--accent); padding: 0.9rem 1rem; font-weight: 600; }
   .hint { text-align: center; margin: 1rem 0; }
+  .archived-note { text-align: center; margin: -1.5rem 1.5rem 1rem; } /* sits under EmptyState's bottom padding */
   .spacer { flex: 1; }
 </style>

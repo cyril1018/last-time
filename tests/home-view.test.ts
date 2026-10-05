@@ -52,3 +52,26 @@ describe('homeView', () => {
     expect(v.visible).toEqual([])
   })
 })
+
+describe('homeView empty state (onboarding)', () => {
+  it('no items at all: empty, nothing archived', () => {
+    const v = homeView([], new Map(), '')
+    expect(v.empty).toBe(true)
+    expect(v.archivedCount).toBe(0)
+  })
+  it('every item archived and no query: empty, with the archived count', () => {
+    const all = [item('x', 'A', { archived: true }), item('y', 'B', { archived: true })]
+    const v = homeView(all, new Map(), '  ')
+    expect(v.empty).toBe(true)
+    expect(v.archivedCount).toBe(2)
+  })
+  it('a query never shows the empty state, even with nothing visible', () => {
+    expect(homeView([], new Map(), '吃藥').empty).toBe(false)
+    expect(homeView([item('x', 'A', { archived: true })], new Map(), 'A').empty).toBe(false)
+  })
+  it('visible items: not empty; archived ones are still counted', () => {
+    const v = homeView(items, lastTs, '')
+    expect(v.empty).toBe(false)
+    expect(v.archivedCount).toBe(1)
+  })
+})

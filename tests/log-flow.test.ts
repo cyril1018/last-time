@@ -9,7 +9,7 @@ vi.mock('../src/lib/haptics', () => ({ vibrate: vi.fn() }))
 import { logAndToast } from '../src/lib/log-flow'
 import { toasts } from '../src/lib/toast.svelte'
 import { vibrate } from '../src/lib/haptics'
-import { EmptyNameError, FutureTimeError, type LogResult } from '../src/lib/store.svelte'
+import { EmptyNameError, FutureTimeError, InvalidTimeError, type LogResult } from '../src/lib/store.svelte'
 import type { Item, ItemRecord } from '../src/lib/types'
 
 const ts = new Date(2026, 9, 5, 9, 5).getTime()
@@ -51,6 +51,11 @@ describe('logAndToast', () => {
     expect(toasts.current?.message).toBe('時間不能是未來')
     expect(await logAndToast(Promise.reject(new Error('boom')))).toBeNull()
     expect(toasts.current?.message).toBe('儲存失敗，請再試一次')
+  })
+
+  it('maps InvalidTimeError (non-finite ts) to 時間格式不正確', async () => {
+    expect(await logAndToast(Promise.reject(new InvalidTimeError()))).toBeNull()
+    expect(toasts.current?.message).toBe('時間格式不正確')
   })
 
   it('shows 復原失敗 when the undo fails', async () => {

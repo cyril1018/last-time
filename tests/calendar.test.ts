@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { monthGrid, monthLabel, combineDateTime } from '../src/lib/calendar'
+import { monthGrid, monthLabel, combineDateTime, pastOrTodayKeys } from '../src/lib/calendar'
 
 const today = new Date(2026, 8, 20, 10).getTime() // Sun 2026-09-20
 
@@ -29,5 +29,17 @@ describe('combineDateTime', () => {
     expect(combineDateTime(day, '12:00')).toBe(new Date(2026, 8, 5, 12, 0).getTime())
     expect(combineDateTime(day, '')).toBeNull()
     expect(combineDateTime(day, '25:00')).toBeNull()
+  })
+})
+
+describe('pastOrTodayKeys', () => {
+  it('keeps today and earlier days, drops days after today', () => {
+    expect(pastOrTodayKeys(['2026-09-19', '2026-09-20', '2026-09-21', '2026-10-01'], today)).toEqual(['2026-09-19', '2026-09-20'])
+  })
+  it('compares calendar days, not instants: today late at night is still kept', () => {
+    expect(pastOrTodayKeys(['2026-09-20'], new Date(2026, 8, 20, 0, 0, 1).getTime())).toEqual(['2026-09-20'])
+  })
+  it('drops keys that are not YYYY-MM-DD (a tampered or stale draft)', () => {
+    expect(pastOrTodayKeys(['2026-9-1', 'x', '', '2026-09-01'], today)).toEqual(['2026-09-01'])
   })
 })

@@ -3,10 +3,10 @@
   import { store } from '../lib/app-store'
   import { sheets } from '../lib/sheet.svelte'
   import { toasts } from '../lib/toast.svelte'
-  import { monthLabel, combineDateTime } from '../lib/calendar'
+  import { monthLabel, combineDateTime, pastOrTodayKeys } from '../lib/calendar'
   import { toDateKey } from '../lib/format'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
-  import { FutureTimeError } from '../lib/store.svelte'
+  import { saveErrorMessage } from '../lib/error-messages'
   import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
   import MonthCalendar from './MonthCalendar.svelte'
@@ -23,7 +23,8 @@
   let year = $state(draft?.year ?? today.getFullYear())
   let month0 = $state(draft?.month0 ?? today.getMonth())
   let time = $state(draft?.time ?? '12:00')
-  let selected = $state(new Set<string>(draft?.selected ?? []))
+  // A restored day that is now in the future would be selected but disabled, so it could not be deselected.
+  let selected = $state(new Set<string>(Array.isArray(draft?.selected) ? pastOrTodayKeys(draft.selected, store.now) : []))
   $effect(() => { saveDraft(KEY, { selected: [...selected], time, year, month0 } satisfies Draft) })
   // Cancelling (back / backdrop) unmounts the sheet and discards the draft. A tab killed by the OS never
   // runs this teardown, so the draft survives reclaim.
@@ -59,7 +60,7 @@
       sheets.close()
       toasts.show(`已加入 ${tss.length} 筆`)
     } catch (e) {
-      toasts.show(e instanceof FutureTimeError ? '時間不能是未來' : '儲存失敗，請再試一次')
+      toasts.show(saveErrorMessage(e))
     }
   })
 </script>

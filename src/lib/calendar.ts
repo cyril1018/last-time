@@ -45,3 +45,12 @@ export function combineDateTime(dayTs: number, hhmm: string): number | null {
   d.setHours(h, mi, 0, 0)
   return d.getTime()
 }
+
+/**
+ * Day keys from a restored draft that can still be selected: well-formed, and today or earlier. A day that
+ * has become future since the draft was saved is disabled in the calendar, so the user could not deselect it.
+ */
+export function pastOrTodayKeys(keys: readonly string[], todayTs: number): string[] {
+  const today = toDateKey(todayTs)
+  return keys.filter((k) => /^\d{4}-\d{2}-\d{2}$/.test(k) && k <= today)
+}

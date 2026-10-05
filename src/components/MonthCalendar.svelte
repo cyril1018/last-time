@@ -9,11 +9,12 @@
 </script>
 
 <div class="cal">
-  {#each weekdays as w (w)}<div class="wd muted">{w}</div>{/each}
+  {#each weekdays as w (w)}<div class="wd muted" aria-hidden="true">{w}</div>{/each}
   {#each cells as c (c.key)}
     <button type="button" class="cell"
             class:out={!c.inMonth} class:today={c.today} class:sel={selected.has(c.key)}
-            disabled={c.future} aria-pressed={selected.has(c.key)} aria-label={c.key}
+            disabled={c.future} aria-pressed={selected.has(c.key)}
+            aria-label={marked.has(c.key) ? `${c.key}，已有紀錄` : c.key}
             onclick={() => ontoggle(c.key)}>
       <span>{c.day}</span>
       {#if marked.has(c.key)}<i class="mark" aria-hidden="true"></i>{/if}

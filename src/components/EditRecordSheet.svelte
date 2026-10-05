@@ -5,7 +5,7 @@
   import { toasts } from '../lib/toast.svelte'
   import { toDatetimeLocalValue, fromDatetimeLocalValue } from '../lib/format'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
-  import { FutureTimeError } from '../lib/store.svelte'
+  import { saveErrorMessage } from '../lib/error-messages'
   import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
 
@@ -43,7 +43,7 @@
       clearDraft(KEY)
       sheets.close()
     } catch (e) {
-      toasts.show(e instanceof FutureTimeError ? '時間不能是未來' : '儲存失敗，請再試一次')
+      toasts.show(saveErrorMessage(e))
     }
   })
 

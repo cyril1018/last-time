@@ -3,7 +3,8 @@ import { sheets } from './sheet.svelte'
 import { store } from './app-store'
 import { vibrate } from './haptics'
 import { formatTime } from './format'
-import { EmptyNameError, FutureTimeError, type LogResult } from './store.svelte'
+import type { LogResult } from './store.svelte'
+import { saveErrorMessage } from './error-messages'
 
 async function undo(result: LogResult): Promise<void> {
   try {
@@ -18,8 +19,7 @@ export async function logAndToast(pending: Promise<LogResult>): Promise<LogResul
   try {
     result = await pending
   } catch (e) {
-    const msg = e instanceof EmptyNameError ? '請輸入名稱' : e instanceof FutureTimeError ? '時間不能是未來' : '儲存失敗，請再試一次'
-    toasts.show(msg)
+    toasts.show(saveErrorMessage(e))
     return null
   }
   vibrate(30)
