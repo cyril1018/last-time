@@ -5,6 +5,7 @@
   import { store } from '../lib/app-store'
   import { sheets } from '../lib/sheet.svelte'
   import { toasts } from '../lib/toast.svelte'
+  import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
 
   let { backup: backupProp }: { backup: ParsedBackup } = $props()
@@ -14,7 +15,10 @@
   const exported = s.exportedAt ? new Date(s.exportedAt) : null
   const exportedText = exported && !Number.isNaN(exported.getTime()) ? exported.toLocaleString('zh-TW') : '不明'
 
-  async function merge() {
+  // One guard for both buttons: a merge in flight blocks a replace and vice versa.
+  const guarded = exclusive((task: () => Promise<void>) => task())
+
+  const merge = () => guarded(async () => {
     const plan = planMerge({ items: store.items, records: store.records }, backup)
     try {
       await store.mergeIn(plan.items, plan.records)
@@ -23,9 +27,9 @@
     } catch {
       toasts.show('匯入失敗，資料未變動')
     }
-  }
+  })
 
-  async function replace() {
+  const replace = () => guarded(async () => {
     if (!confirm('覆蓋現有資料？目前的項目和紀錄會全部刪除，無法復原。')) return
     const plan = planReplace(backup)
     try {
@@ -36,7 +40,7 @@
     } catch {
       toasts.show('匯入失敗，資料未變動')
     }
-  }
+  })
 </script>
 
 <Sheet title="匯入備份">

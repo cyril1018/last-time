@@ -6,6 +6,7 @@
   import { toDatetimeLocalValue, fromDatetimeLocalValue } from '../lib/format'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
   import { FutureTimeError } from '../lib/store.svelte'
+  import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
 
   let { recordId }: { recordId: string } = $props()
@@ -29,7 +30,7 @@
 
   const max = $derived(toDatetimeLocalValue(store.now))
 
-  async function save() {
+  const save = exclusive(async () => {
     // `when` is minute-truncated: only send ts when the user changed it, so a note-only edit keeps the original seconds.
     const patch: { ts?: number; note: string } = { note: note.trim() }
     if (when !== initialWhen) {
@@ -44,7 +45,7 @@
     } catch (e) {
       toasts.show(e instanceof FutureTimeError ? '時間不能是未來' : '儲存失敗，請再試一次')
     }
-  }
+  })
 
   async function remove() {
     if (!confirm('刪除這筆紀錄？')) return

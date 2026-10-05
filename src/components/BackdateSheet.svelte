@@ -7,6 +7,7 @@
   import { toDateKey } from '../lib/format'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
   import { FutureTimeError } from '../lib/store.svelte'
+  import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
   import MonthCalendar from './MonthCalendar.svelte'
 
@@ -40,7 +41,8 @@
     year = d.getFullYear(); month0 = d.getMonth()
   }
 
-  async function add() {
+  // No undo for a batch add, so a double tap must never insert it twice.
+  const add = exclusive(async () => {
     const tss: number[] = []
     for (const key of selected) {
       const [y, m, d] = key.split('-').map(Number)
@@ -56,7 +58,7 @@
     } catch (e) {
       toasts.show(e instanceof FutureTimeError ? '時間不能是未來' : '儲存失敗，請再試一次')
     }
-  }
+  })
 </script>
 
 <Sheet title="補其他日期">

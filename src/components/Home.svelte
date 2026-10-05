@@ -3,6 +3,7 @@
   import { router } from '../lib/router.svelte'
   import { sortItemsForHome, recent7, backupBannerVisible, normalizeName, DAY_MS } from '../lib/calc'
   import { logAndToast } from '../lib/log-flow'
+  import { exclusive } from '../lib/exclusive'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
   import ItemRow from './ItemRow.svelte'
   import SearchBar from './SearchBar.svelte'
@@ -30,15 +31,27 @@
     setTimeout(() => { if (flashId === id) flashId = null }, 700)
   }
 
-  async function logItem(id: string) {
-    const r = await logAndToast(store.logNow(id))
-    if (r) flash(id)
+  // One guard for both entry points: a double tap (or tap + Enter) never logs twice.
+  const guarded = exclusive((task: () => Promise<void>) => task())
+
+  function logItem(id: string) {
+    return guarded(async () => {
+      const r = await logAndToast(store.logNow(id))
+      if (r) flash(id)
+    })
   }
 
-  async function submit() {
-    if (!q) return
-    const r = await logAndToast(store.addItemAndLog(q))
-    if (r) { query = ''; flash(r.item.id) }
+  function submit() {
+    return guarded(async () => {
+      const name = q
+      if (!name) return
+      // Clear right away so the add row disappears before the write lands; put the text back if it fails.
+      const typed = query
+      query = ''
+      const r = await logAndToast(store.addItemAndLog(name))
+      if (r) flash(r.item.id)
+      else if (!query) query = typed
+    })
   }
 </script>
 

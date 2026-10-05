@@ -7,6 +7,7 @@
   import { QUICK_EMOJIS } from '../lib/emoji'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
   import { EmptyNameError } from '../lib/store.svelte'
+  import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
 
   let { itemId }: { itemId: string } = $props()
@@ -28,7 +29,7 @@
 
   const recordCount = $derived(store.recordsOf(initialId).length)
 
-  async function save() {
+  const save = exclusive(async () => {
     try {
       await store.updateItem(initialId, { name, emoji, expectDays, archived })
       clearDraft(KEY)
@@ -36,7 +37,7 @@
     } catch (e) {
       toasts.show(e instanceof EmptyNameError ? '請輸入名稱' : '儲存失敗，請再試一次')
     }
-  }
+  })
 
   async function remove() {
     if (!confirm(`刪除「${item?.name ?? ''}」？會連同 ${recordCount} 筆紀錄一起刪除，無法復原。`)) return

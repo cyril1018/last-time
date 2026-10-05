@@ -3,6 +3,7 @@
   import { router } from '../lib/router.svelte'
   import { sheets } from '../lib/sheet.svelte'
   import { logAndToast } from '../lib/log-flow'
+  import { exclusive } from '../lib/exclusive'
   import { since, sinceParts, isDue, averageIntervalDays, formatIntervalDays } from '../lib/calc'
   import Timeline from './Timeline.svelte'
 
@@ -15,6 +16,8 @@
   const parts = $derived(s ? sinceParts(s) : null)
   const due = $derived(item && s ? isDue(item.expectDays, s) : false)
   const avg = $derived(averageIntervalDays(records.map((r) => r.ts)))
+
+  const logNow = exclusive(() => logAndToast(store.logNow(id)))
 
   // Item vanished (deleted) → go home
   $effect(() => { if (store.ready && !item) router.replace({ name: 'home' }) })
@@ -54,7 +57,7 @@
 
     <div class="spacer"></div>
     <footer>
-      <button class="btn primary wide" onclick={() => logAndToast(store.logNow(id))}>立即記錄</button>
+      <button class="btn primary wide" onclick={() => logNow()}>立即記錄</button>
       <button class="btn" onclick={() => sheets.open({ kind: 'backdate', itemId: id })}>補其他日期</button>
     </footer>
   </div>
