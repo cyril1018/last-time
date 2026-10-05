@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { FakeBrowser } from './fake-browser'
+import { BACK_TIMEOUT_MS } from '../src/lib/history-nav'
 
 type RouterMod = typeof import('../src/lib/router.svelte')
 type SheetMod = typeof import('../src/lib/sheet.svelte')
@@ -194,7 +195,7 @@ describe('history queue robustness', () => {
     expect(b.left).toBe(false)
   })
 
-  it('a back() that never produces a popstate releases the queue after ~400 ms', async () => {
+  it('a back() that never produces a popstate releases the queue after BACK_TIMEOUT_MS', async () => {
     // Standalone launch with a dead import marker on the very first entry: there is nothing to go back to,
     // so the back() issued by sheets.start() lands nowhere and no popstate ever comes.
     b = new FakeBrowser('', null, [{ state: { 'lasttime-sheet': true }, hash: '' }], 0)
@@ -212,7 +213,7 @@ describe('history queue robustness', () => {
       await p
       sheets.open({ kind: 'edit-item', itemId: 'x' })
       expect(sheets.current).toBeNull()
-      vi.advanceTimersByTime(394)
+      vi.advanceTimersByTime(BACK_TIMEOUT_MS - 6)
       expect(sheets.current).toBeNull()
       vi.advanceTimersByTime(1)
       expect(sheets.current).toEqual({ kind: 'edit-item', itemId: 'x' })
@@ -232,11 +233,11 @@ describe('history queue robustness', () => {
     const flush = async () => { const p = b.flush(); await vi.advanceTimersByTimeAsync(5); await p }
     try {
       sheets.close() // back() #1
-      vi.advanceTimersByTime(300)
-      await flush() // #1 lands at ~300 ms
+      vi.advanceTimersByTime(BACK_TIMEOUT_MS * 0.75)
+      await flush() // #1 lands in time
       expect(sheets.current).toBeNull()
       router.home() // back() #2, still in flight when #1's watchdog would have fired
-      vi.advanceTimersByTime(150) // past 400 ms since #1
+      vi.advanceTimersByTime(BACK_TIMEOUT_MS * 0.4) // past #1's deadline, well before #2's
       expect(b.index).toBe(1) // #2 not landed yet, and no extra back was issued
       await flush()
     } finally {
@@ -270,5 +271,82 @@ describe('history queue robustness', () => {
     } finally {
       logged.mockRestore()
     }
+  })
+})
+
+describe('backs that go nowhere never loop (fix round 1)', () => {
+  /** Fresh page load under fake timers; flush() drives the fake browser's queued traversals. */
+  async function bootFake(browser: FakeBrowser) {
+    b = browser
+    b.install()
+    vi.resetModules()
+    router = (await import('../src/lib/router.svelte')).router
+    sheets = (await import('../src/lib/sheet.svelte')).sheets
+    vi.useFakeTimers()
+    router.start()
+    sheets.start()
+    await flush()
+  }
+  const flush = async () => { const p = b.flush(); await vi.advanceTimersByTimeAsync(5); await p }
+  afterEach(() => { vi.useRealTimers() })
+
+  it('a dead marker on the first entry of a standalone launch: ‹ from an item goes home once, no back loop', async () => {
+    const browser = new FakeBrowser('', null, [{ state: { 'lasttime-sheet': true }, hash: '' }], 0)
+    browser.edge = 'stay'
+    const backs = vi.spyOn(browser.history, 'back')
+    await bootFake(browser)
+    await vi.advanceTimersByTimeAsync(BACK_TIMEOUT_MS * 3) // the boot back went nowhere
+    expect(b.top.state).toEqual({}) // the dead marker is stripped from the entry itself
+
+    router.navigate({ name: 'item', id: 'x' })
+    router.home() // ‹
+    for (let i = 0; i < 10; i++) {
+      await flush()
+      await vi.advanceTimersByTimeAsync(BACK_TIMEOUT_MS)
+    }
+    expect(router.route).toEqual({ name: 'home' })
+    expect(b.index).toBe(0)
+    expect(backs).toHaveBeenCalledTimes(2) // the boot back and the one ‹ back
+    router.navigate({ name: 'settings' }) // homing is over: navigation is not swallowed
+    expect(router.route).toEqual({ name: 'settings' })
+  })
+
+  it('an unrestorable sheet marker keeps the rest of the entry state when stripped', async () => {
+    const browser = new FakeBrowser('', null, [
+      { state: null, hash: '' },
+      { state: { depth: 1, 'lasttime-sheet': { kind: 'nope' } }, hash: '#/settings' },
+    ], 1)
+    browser.edge = 'stay'
+    const replaced = vi.spyOn(browser.history, 'replaceState')
+    await bootFake(browser)
+    expect(replaced).toHaveBeenCalledWith({ depth: 1 }, '')
+    await flush()
+    expect(b.index).toBe(0)
+  })
+
+  it('home() stops instead of looping when its back times out, and makes the entry home', async () => {
+    // A deep-linked entry that claims a page below it, with nothing there (standalone launch).
+    const browser = new FakeBrowser('', null, [{ state: { depth: 1 }, hash: '#/item/x' }], 0)
+    browser.edge = 'stay'
+    const backs = vi.spyOn(browser.history, 'back')
+    await bootFake(browser)
+    expect(router.route).toEqual({ name: 'item', id: 'x' })
+
+    router.home()
+    for (let i = 0; i < 10; i++) {
+      await flush()
+      await vi.advanceTimersByTimeAsync(BACK_TIMEOUT_MS)
+    }
+    expect(backs).toHaveBeenCalledTimes(1)
+    expect(router.route).toEqual({ name: 'home' })
+    expect(b.hashes()).toEqual(['#/'])
+    expect(b.top.state).toEqual({ depth: 0 })
+
+    router.navigate({ name: 'settings' })
+    expect(router.route).toEqual({ name: 'settings' })
+    router.home() // works normally afterwards
+    await flush()
+    expect(router.route).toEqual({ name: 'home' })
+    expect(b.index).toBe(0)
   })
 })

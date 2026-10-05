@@ -22,6 +22,9 @@ export const BACK_TIMEOUT_MS = 400
 
 let inFlight = false
 let watchdog: ReturnType<typeof setTimeout> | undefined
+let backSeq = 0
+/** Ids of backs the watchdog released; each is read (and forgotten) by whoever issued it, if they care. */
+const timedOut = new Set<number>()
 let draining = false
 let started = false
 const waiting: Array<() => void> = []
@@ -72,16 +75,27 @@ export function whenSettled(fn: () => void): void {
   drain()
 }
 
-/** history.back(), marking a traversal in flight. Only call from inside whenSettled(). */
-export function back(): void {
+/**
+ * history.back(), marking a traversal in flight. Only call from inside whenSettled(). Returns an id for
+ * backTimedOut(), so a caller that walks back step by step can stop when a back went nowhere.
+ */
+export function back(): number {
+  const id = ++backSeq
   inFlight = true
   clearTimeout(watchdog)
   // No popstate in time: the traversal went nowhere. Stop waiting; a late popstate still re-syncs.
   watchdog = setTimeout(() => {
+    timedOut.add(id)
     inFlight = false
     drain()
   }, BACK_TIMEOUT_MS)
   history.back()
+  return id
+}
+
+/** Whether back number `id` was released by the watchdog instead of landing. Reading it forgets it. */
+export function backTimedOut(id: number): boolean {
+  return timedOut.delete(id)
 }
 
 export function currentState(): Record<string, unknown> {
@@ -96,4 +110,10 @@ export function currentDepth(): number {
 
 export function sheetMark(): unknown {
   return currentState()[SHEET_MARK]
+}
+
+/** A copy of an entry's state without the sheet marker. */
+export function withoutSheetMark(state: Record<string, unknown>): Record<string, unknown> {
+  const { [SHEET_MARK]: _mark, ...rest } = state
+  return rest
 }

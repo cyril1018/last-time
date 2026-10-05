@@ -1,5 +1,5 @@
 import type { ParsedBackup } from './backup'
-import { SHEET_MARK, startHistory, onHistorySync, whenSettled, back, currentState, sheetMark } from './history-nav'
+import { SHEET_MARK, startHistory, onHistorySync, whenSettled, back, currentState, sheetMark, withoutSheetMark } from './history-nav'
 
 export type SheetState =
   | { kind: 'edit-item'; itemId: string }
@@ -40,12 +40,18 @@ class Sheets {
       else if (!this.current) this.current = asRestorable(m) // forward onto a sheet entry
     })
     // Reload or tab reclaim keeps history.state: reopen the sheet that was on top (its component reloads
-    // its draft). An import marker, or anything unusable, is a dead entry: drop it so back is not wasted.
+    // its draft). An import marker, or anything unusable, is a dead entry. Strip the marker first, so nothing
+    // (home(), the back key) ever mistakes the entry for an open sheet again, even if the back below goes
+    // nowhere (first entry of a standalone launch); then drop the now-duplicate entry so back is not wasted.
     const m = sheetMark()
     if (m === undefined) return
     const restored = asRestorable(m)
-    if (restored) this.current = restored
-    else whenSettled(() => back())
+    if (restored) {
+      this.current = restored
+      return
+    }
+    history.replaceState(withoutSheetMark(currentState()), '')
+    whenSettled(() => back())
   }
 
   open(s: NonNullable<SheetState>): void {

@@ -1,4 +1,6 @@
-import { startHistory, onHistorySync, whenSettled, back, currentDepth, sheetMark } from './history-nav'
+import {
+  startHistory, onHistorySync, whenSettled, back, backTimedOut, currentDepth, currentState, sheetMark, withoutSheetMark,
+} from './history-nav'
 
 export type Route = { name: 'home' } | { name: 'item'; id: string } | { name: 'settings' }
 
@@ -61,18 +63,32 @@ class Router {
    * Go to home the way the back key would: pop pages (and an open sheet's entry) one at a time until the
    * entry the app was opened on; if that entry is not home (deep link), rewrite it to home. Never leaves
    * the app and never leaves a duplicate home entry. Repeated calls while on the way are ignored.
+   * If a back goes nowhere (no popstate in time: nothing below this entry), it stops instead of looping and
+   * rewrites the entry it is on into home.
    */
   home(): void {
     if (this.homing) return
     this.homing = true
+    let last: number | null = null
     const step = () => {
-      if (currentDepth() > 0 || sheetMark() !== undefined) {
-        back()
-        whenSettled(step)
-        return
+      try {
+        if (last !== null && backTimedOut(last)) {
+          this.homing = false
+          history.replaceState({ ...withoutSheetMark(currentState()), depth: 0 }, '', routeToHash({ name: 'home' }))
+          this.route = { name: 'home' }
+          return
+        }
+        if (currentDepth() > 0 || sheetMark() !== undefined) {
+          last = back()
+          whenSettled(step)
+          return
+        }
+        this.homing = false
+        if (this.route.name !== 'home') this.replace({ name: 'home' })
+      } catch (e) {
+        this.homing = false // never leave home() wedged
+        throw e
       }
-      this.homing = false
-      if (this.route.name !== 'home') this.replace({ name: 'home' })
     }
     whenSettled(step)
   }
