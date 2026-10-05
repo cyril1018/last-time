@@ -51,13 +51,13 @@
       return
     }
     toasts.show('已清除全部資料')
-    router.navigate({ name: 'home' })
+    router.home()
   }
 </script>
 
 <div class="page">
   <header>
-    <button class="icon-btn" aria-label="返回" onclick={() => router.back()}>‹</button>
+    <button class="icon-btn" aria-label="返回" onclick={() => router.home()}>‹</button>
     <h1>設定</h1>
   </header>
 

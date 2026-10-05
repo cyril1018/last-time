@@ -45,7 +45,7 @@
     sheets.closeThen(async () => {
       try {
         await store.deleteItem(initialId)
-        router.replace({ name: 'home' })
+        router.home()
       } catch {
         toasts.show('刪除失敗，請再試一次')
       }

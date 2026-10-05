@@ -19,14 +19,14 @@
 
   const logNow = exclusive(() => logAndToast(store.logNow(id)))
 
-  // Item vanished (deleted) → go home
-  $effect(() => { if (store.ready && !item) router.replace({ name: 'home' }) })
+  // Item vanished (deleted, or its creation undone) → go home without leaving a duplicate home entry
+  $effect(() => { if (store.ready && !item) router.home() })
 </script>
 
 {#if item}
   <div class="page">
     <header>
-      <button class="icon-btn" aria-label="返回" onclick={() => router.back()}>‹</button>
+      <button class="icon-btn" aria-label="返回" onclick={() => router.home()}>‹</button>
       <div class="title">
         <h1><span aria-hidden="true">{item.emoji}</span> {item.name}</h1>
         <p class="muted small">

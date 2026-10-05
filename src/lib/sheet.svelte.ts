@@ -1,4 +1,5 @@
 import type { ParsedBackup } from './backup'
+import { SHEET_MARK, startHistory, onHistorySync, whenSettled, back, currentState, sheetMark } from './history-nav'
 
 export type SheetState =
   | { kind: 'edit-item'; itemId: string }
@@ -7,43 +8,48 @@ export type SheetState =
   | { kind: 'import'; backup: ParsedBackup }
   | null
 
-const MARK = 'lasttime-sheet'
-
 class Sheets {
   current = $state.raw<SheetState>(null)
 
   start(): void {
-    // Back key / history.back() closes an open sheet.
-    window.addEventListener('popstate', () => {
-      if (this.current) this.current = null
+    startHistory()
+    // Back key / history.back(): the entry we land on decides whether a sheet is open.
+    onHistorySync(() => {
+      if (sheetMark() === undefined) this.current = null
     })
   }
 
   open(s: NonNullable<SheetState>): void {
-    if (this.current) {
-      this.current = s // swap in place, keep the single history entry
-      return
-    }
-    this.current = s
-    history.pushState({ [MARK]: true }, '')
+    whenSettled(() => {
+      if (this.current) {
+        this.current = s // swap in place, keep the single history entry
+        return
+      }
+      this.current = s
+      // Keep the page's depth on the marker entry so router.home() can still count its way back.
+      history.pushState({ ...currentState(), [SHEET_MARK]: true }, '')
+    })
   }
 
   close(): void {
     if (!this.current) return
     this.current = null
-    if (history.state && history.state[MARK]) history.back()
+    whenSettled(() => {
+      if (sheetMark() !== undefined) back()
+    })
   }
 
   /** Close the sheet, then run `fn` once the history entry has been popped. */
   closeThen(fn: () => void): void {
-    if (!this.current) { fn(); return }
     this.current = null
-    if (history.state && history.state[MARK]) {
-      window.addEventListener('popstate', () => fn(), { once: true })
-      history.back()
-    } else {
-      fn()
-    }
+    whenSettled(() => {
+      if (sheetMark() !== undefined) {
+        back()
+        whenSettled(fn)
+      } else {
+        fn()
+      }
+    })
   }
 }
 
