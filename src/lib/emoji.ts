@@ -1,7 +1,7 @@
 export const DEFAULT_EMOJI = '📌'
 
-/** Ordered: first keyword hit wins. */
-const RULES: ReadonlyArray<readonly [string[], string]> = [
+/** Spec §4.3, ordered: first keyword hit wins. */
+export const EMOJI_RULES: ReadonlyArray<readonly [string[], string]> = [
   [['床單', '棉被', '枕', '床'], '🛏️'],
   [['電話', '爸', '媽'], '📞'],
   [['剪'], '✂️'],
@@ -42,7 +42,7 @@ const RULES: ReadonlyArray<readonly [string[], string]> = [
 ]
 
 export function guessEmoji(name: string): string {
-  for (const [keywords, emoji] of RULES) {
+  for (const [keywords, emoji] of EMOJI_RULES) {
     if (keywords.some((k) => name.includes(k))) return emoji
   }
   return DEFAULT_EMOJI

@@ -36,7 +36,11 @@ export function toDatetimeLocalValue(ts: number): string {
 export function fromDatetimeLocalValue(v: string): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(v)
   if (!m) return null
-  const [, y, mo, d, h, mi] = m
-  const t = new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi)).getTime()
-  return Number.isFinite(t) ? t : null
+  const [y, mo, d, h, mi] = m.slice(1).map(Number) as [number, number, number, number, number]
+  const date = new Date(y, mo - 1, d, h, mi)
+  // Date silently rolls over out-of-range parts (Feb 31 → Mar 3, 24:00 → next day): reject those.
+  const roundTrips =
+    date.getFullYear() === y && date.getMonth() === mo - 1 && date.getDate() === d &&
+    date.getHours() === h && date.getMinutes() === mi
+  return roundTrips ? date.getTime() : null
 }

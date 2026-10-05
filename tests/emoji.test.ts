@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { guessEmoji, QUICK_EMOJIS, DEFAULT_EMOJI } from '../src/lib/emoji'
+import { guessEmoji, QUICK_EMOJIS, DEFAULT_EMOJI, EMOJI_RULES } from '../src/lib/emoji'
 
 describe('guessEmoji', () => {
   it.each([
@@ -31,6 +31,18 @@ describe('guessEmoji', () => {
   ])('%s → %s', (name, emoji) => {
     expect(guessEmoji(name)).toBe(emoji)
   })
+
+  it('has the 37 rule rows of spec §4.3', () => {
+    expect(EMOJI_RULES).toHaveLength(37)
+  })
+
+  it.each(EMOJI_RULES.flatMap(([keywords, emoji], row) => keywords.map((k) => [row + 1, k, emoji] as const)))(
+    'rule %i: keyword %s → %s',
+    (_row, keyword, emoji) => {
+      expect(guessEmoji(keyword)).toBe(emoji)
+      expect(guessEmoji(`每週${keyword}一次`)).toBe(emoji)
+    },
+  )
 
   it('falls back to 📌', () => {
     expect(guessEmoji('整理抽屜')).toBe(DEFAULT_EMOJI)

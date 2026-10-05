@@ -24,4 +24,17 @@ describe('format', () => {
     expect(fromDatetimeLocalValue('garbage')).toBeNull()
   })
   it('date key', () => expect(toDateKey(ts)).toBe('2026-09-20'))
+  it('date key zero-pads month and day', () => {
+    expect(toDateKey(new Date(2026, 0, 5, 9).getTime())).toBe('2026-01-05')
+  })
+  it.each([
+    '2026-02-31T10:00', '2026-02-29T10:00', '2026-13-01T10:00', '2026-00-10T10:00', '2026-04-31T10:00',
+    '2026-09-20T24:00', '2026-09-20T23:60', '0026-09-20T10:00',
+  ])('rejects %s, whose components do not round-trip', (v) => {
+    expect(fromDatetimeLocalValue(v)).toBeNull()
+  })
+  it('accepts real edge dates', () => {
+    expect(fromDatetimeLocalValue('2028-02-29T00:00')).toBe(new Date(2028, 1, 29, 0, 0).getTime())
+    expect(fromDatetimeLocalValue('2026-12-31T23:59')).toBe(new Date(2026, 11, 31, 23, 59).getTime())
+  })
 })

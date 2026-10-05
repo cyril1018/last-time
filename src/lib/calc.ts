@@ -21,7 +21,10 @@ export interface Since {
   kind: SinceKind
   /** Hours for 'hours', days for 'days', 0 for 'now'. */
   value: number
-  /** Calendar-day difference, always present. */
+  /**
+   * Calendar-day difference for 'days'. Always 0 for 'hours' and for 'now', even when a
+   * 'now' spans midnight (e.g. 23:50 → 00:10), so 'now' is never due.
+   */
   days: number
 }
 
@@ -50,11 +53,14 @@ export function isDue(expectDays: number | null, s: Since): boolean {
   return expectDays !== null && s.kind === 'days' && s.days >= expectDays
 }
 
-/** Positive integer or null. Accepts numbers and numeric strings. */
+/**
+ * Positive integer or null. Accepts finite integer numbers and plain decimal-digit strings
+ * (surrounding whitespace allowed); hex, exponent, sign and fraction forms are rejected.
+ */
 export function normalizeExpectDays(input: unknown): number | null {
   let n: number
   if (typeof input === 'number') n = input
-  else if (typeof input === 'string' && input.trim() !== '') n = Number(input.trim())
+  else if (typeof input === 'string' && /^\d+$/.test(input.trim())) n = Number(input.trim())
   else return null
   if (!Number.isFinite(n) || !Number.isInteger(n) || n <= 0) return null
   return n
@@ -96,13 +102,20 @@ export function recent7(items: Item[], lastTs: Map<string, number>, now: number)
 
 export function averageIntervalDays(tss: number[]): number | null {
   if (tss.length < 3) return null
-  const min = Math.min(...tss)
-  const max = Math.max(...tss)
+  // A loop, not Math.min(...tss): spreading a large array overflows the call stack.
+  let min = Infinity
+  let max = -Infinity
+  for (const t of tss) {
+    if (t < min) min = t
+    if (t > max) max = t
+  }
   return (max - min) / (tss.length - 1) / DAY_MS
 }
 
+/** < 10 days: one decimal; otherwise an integer. Rounds to one decimal first, so 9.96 → "10", not "10.0". */
 export function formatIntervalDays(days: number): string {
-  return days < 10 ? days.toFixed(1) : String(Math.round(days))
+  const oneDecimal = Math.round(days * 10) / 10
+  return oneDecimal < 10 ? oneDecimal.toFixed(1) : String(Math.round(days))
 }
 
 /** For a newest-first timestamp list, gap in calendar days between each adjacent pair. */

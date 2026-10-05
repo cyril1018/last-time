@@ -47,6 +47,9 @@ describe('since', () => {
     expect(s).toMatchObject({ kind: 'days', value: 1, days: 1 })
     expect(sinceParts(s)).toEqual({ number: '1', unit: '天' })
   })
+  it("'now' across midnight reports days 0, not the calendar-day difference", () => {
+    expect(since(at(2026, 9, 19, 23, 50), at(2026, 9, 20, 0, 10))).toEqual({ kind: 'now', value: 0, days: 0 })
+  })
   it('future timestamps clamp to 剛剛', () => {
     expect(since(now + 5 * 60_000, now).kind).toBe('now')
   })
@@ -89,6 +92,8 @@ describe('normalizeExpectDays', () => {
   it.each([
     [14, 14], ['14', 14], [' 7 ', 7],
     [0, null], [-3, null], [2.5, null], ['abc', null], ['', null], [null, null], [undefined, null], [NaN, null], [Infinity, null],
+    ['0', null], ['   ', null], ['0x1A', null], ['1e2', null], ['2.5', null], ['-3', null], ['+3', null], ['3 4', null], ['007', 7],
+    [true, null], [{}, null], [[7], null],
   ])('%p → %p', (input, expected) => {
     expect(normalizeExpectDays(input)).toBe(expected)
   })
@@ -135,10 +140,22 @@ describe('intervals and gaps', () => {
     const tss = [at(2026, 9, 10), at(2026, 9, 1), at(2026, 9, 19)]
     expect(averageIntervalDays(tss)).toBeCloseTo(9, 5)
   })
+  it('handles very large arrays without spreading into Math.min/max', () => {
+    const base = at(2026, 1, 1)
+    const tss = Array.from({ length: 3000 }, (_, i) => base + i * DAY_MS)
+    expect(averageIntervalDays(tss)).toBeCloseTo(1, 5)
+    const big = Array.from({ length: 200_000 }, (_, i) => base + i * 60_000)
+    expect(averageIntervalDays(big)).toBeCloseTo(60_000 / DAY_MS, 9)
+  })
   it('formats < 10 with one decimal, else integer', () => {
     expect(formatIntervalDays(9.26)).toBe('9.3')
     expect(formatIntervalDays(14.6)).toBe('15')
     expect(formatIntervalDays(10)).toBe('10')
+  })
+  it.each([
+    [9.94, '9.9'], [9.95, '10'], [9.96, '10'], [10, '10'], [0.04, '0.0'], [9.5, '9.5'],
+  ])('rounds first, then picks the format: %p → %p', (days, out) => {
+    expect(formatIntervalDays(days)).toBe(out)
   })
   it('gapsBetween returns calendar-day gaps for a newest-first list', () => {
     expect(gapsBetween([at(2026, 9, 20, 8), at(2026, 9, 20, 7), at(2026, 9, 6, 23)])).toEqual([0, 14])
@@ -157,6 +174,13 @@ describe('backupBannerVisible', () => {
   it('shown when last backup older than 14 days, hidden if newer', () => {
     expect(backupBannerVisible(50, { lastBackupAt: now - 15 * DAY_MS, backupSnoozeUntil: null }, now)).toBe(true)
     expect(backupBannerVisible(50, { lastBackupAt: now - 13 * DAY_MS, backupSnoozeUntil: null }, now)).toBe(false)
+  })
+  it('exactly 14 days since the last backup is not yet "over 14 days"', () => {
+    expect(backupBannerVisible(50, { lastBackupAt: now - 14 * DAY_MS, backupSnoozeUntil: null }, now)).toBe(false)
+    expect(backupBannerVisible(50, { lastBackupAt: now - 14 * DAY_MS - 1, backupSnoozeUntil: null }, now)).toBe(true)
+  })
+  it('snooze ending exactly now still hides (shown only once now > snoozeUntil)', () => {
+    expect(backupBannerVisible(50, { lastBackupAt: null, backupSnoozeUntil: now }, now)).toBe(false)
   })
   it('snooze hides until the snooze time passes', () => {
     expect(backupBannerVisible(50, { lastBackupAt: null, backupSnoozeUntil: now + 1 }, now)).toBe(false)
