@@ -46,10 +46,14 @@ export class FakeBrowser {
   /** The user's system back key. */
   systemBack(): void { this.queued.push(-1) }
 
-  /** Apply queued traversals one task at a time, letting promise chains run in between. */
-  async flush(): Promise<void> {
+  /**
+   * Apply queued traversals one task at a time, letting promise chains run in between. `limit` stops after
+   * that many queued traversals (to look at the state between two of them).
+   */
+  async flush(limit = Infinity): Promise<void> {
     for (let guard = 0; guard < 50; guard++) {
       await new Promise((r) => setTimeout(r, 0))
+      if (limit-- <= 0) return
       const d = this.queued.shift()
       if (d === undefined) return
       if (this.left) continue

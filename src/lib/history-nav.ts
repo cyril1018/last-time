@@ -13,18 +13,25 @@
  *
  * Two safety valves keep the queue from wedging: a back() that produces no popstate within
  * BACK_TIMEOUT_MS (e.g. nothing before the first entry of a standalone launch) stops counting as in flight,
- * and a queued step that throws is logged and skipped.
+ * and a queued step that throws is logged and skipped. A back the watchdog gave up on may still land late:
+ * its popstate re-syncs the router and sheets as usual but is not taken as the landing of a newer back.
  */
 export const SHEET_MARK = 'lasttime-sheet'
 
 /** How long a back() may take to land before the queue stops waiting for its popstate. */
-export const BACK_TIMEOUT_MS = 400
+export const BACK_TIMEOUT_MS = 1000
 
 let inFlight = false
 let watchdog: ReturnType<typeof setTimeout> | undefined
 let backSeq = 0
 /** Ids of backs the watchdog released; each is read (and forgotten) by whoever issued it, if they care. */
 const timedOut = new Set<number>()
+/**
+ * Timed-out backs whose popstate may still arrive, oldest first (one expiry timer each). The next popstate is
+ * attributed to the oldest. A back that has not landed BACK_TIMEOUT_MS after its watchdog fired is taken to
+ * have gone nowhere and is forgotten, so it cannot swallow the landing of later backs forever.
+ */
+const late: Array<ReturnType<typeof setTimeout>> = []
 let draining = false
 let started = false
 const waiting: Array<() => void> = []
@@ -51,17 +58,30 @@ export function startHistory(): void {
   if (started) return
   started = true
   window.addEventListener('popstate', () => {
-    clearTimeout(watchdog)
-    for (const sync of syncers) {
-      try {
-        sync()
-      } catch (e) {
-        console.error(e) // a broken syncer must not leave the traversal in flight forever
-      }
+    const stale = late.shift()
+    if (stale !== undefined) {
+      // The late landing of a back we already stopped waiting for: re-sync, but whatever is in flight now
+      // is still in flight.
+      clearTimeout(stale)
+      sync()
+      drain()
+      return
     }
+    clearTimeout(watchdog)
+    sync()
     inFlight = false
     drain()
   })
+}
+
+function sync(): void {
+  for (const fn of syncers) {
+    try {
+      fn()
+    } catch (e) {
+      console.error(e) // a broken syncer must not leave the traversal in flight forever
+    }
+  }
 }
 
 /** Called on every popstate (system back, our own back()), before queued work runs. */
@@ -86,6 +106,11 @@ export function back(): number {
   // No popstate in time: the traversal went nowhere. Stop waiting; a late popstate still re-syncs.
   watchdog = setTimeout(() => {
     timedOut.add(id)
+    const expiry = setTimeout(() => {
+      const i = late.indexOf(expiry)
+      if (i >= 0) late.splice(i, 1)
+    }, BACK_TIMEOUT_MS)
+    late.push(expiry)
     inFlight = false
     drain()
   }, BACK_TIMEOUT_MS)

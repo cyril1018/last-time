@@ -350,3 +350,62 @@ describe('backs that go nowhere never loop (fix round 1)', () => {
     expect(b.index).toBe(0)
   })
 })
+
+describe('late popstate of a timed-out back (fix round 1, F2)', () => {
+  const flush = async (limit?: number) => { const p = b.flush(limit); await vi.advanceTimersByTimeAsync(5); await p }
+  afterEach(() => { vi.useRealTimers() })
+
+  it('the watchdog waits a full second', () => {
+    expect(BACK_TIMEOUT_MS).toBe(1000)
+  })
+
+  it('a late popstate from back A does not release back B; B lands normally and no extra back is issued', async () => {
+    router.navigate({ name: 'item', id: 'x' })
+    sheets.open({ kind: 'edit-record', recordId: 'r1' })
+    const backs = vi.spyOn(b.history, 'back')
+    const nav = await import('../src/lib/history-nav')
+    vi.useFakeTimers()
+
+    sheets.close() // back A: slow, its popstate has not come yet
+    vi.advanceTimersByTime(BACK_TIMEOUT_MS) // the watchdog gives up on A
+    router.home() // back B, from the entry A has not left yet
+    let ran = false
+    nav.whenSettled(() => { ran = true })
+    expect(backs).toHaveBeenCalledTimes(2)
+
+    await flush(1) // A's late popstate
+    expect(router.route).toEqual({ name: 'item', id: 'x' }) // it still re-syncs the route…
+    expect(sheets.current).toBeNull() // …and the sheets
+    expect(ran).toBe(false) // …but B is still in flight
+    expect(backs).toHaveBeenCalledTimes(2)
+
+    await flush() // B lands
+    expect(ran).toBe(true)
+    expect(router.route).toEqual({ name: 'home' })
+    expect(b.index).toBe(0)
+    expect(b.left).toBe(false)
+    expect(backs).toHaveBeenCalledTimes(2)
+  })
+
+  it('a timed-out back that never lands is forgotten after another BACK_TIMEOUT_MS', async () => {
+    const browser = new FakeBrowser('', null, [{ state: { 'lasttime-sheet': true }, hash: '' }], 0)
+    browser.edge = 'stay'
+    b = browser
+    b.install()
+    vi.resetModules()
+    router = (await import('../src/lib/router.svelte')).router
+    sheets = (await import('../src/lib/sheet.svelte')).sheets
+    vi.useFakeTimers()
+    router.start()
+    sheets.start() // back that goes nowhere
+    await flush()
+    await vi.advanceTimersByTimeAsync(BACK_TIMEOUT_MS * 2)
+
+    router.navigate({ name: 'item', id: 'x' })
+    router.home()
+    await flush() // its popstate is not mistaken for the dead one: home settles at once
+    expect(router.route).toEqual({ name: 'home' })
+    router.navigate({ name: 'settings' })
+    expect(router.route).toEqual({ name: 'settings' })
+  })
+})
