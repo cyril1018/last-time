@@ -5,6 +5,7 @@
   import Toast from './components/Toast.svelte'
   import Home from './components/Home.svelte'
   import ItemDetail from './components/ItemDetail.svelte'
+  import EditItemSheet from './components/EditItemSheet.svelte'
 
   // Theme: data-theme on <html> + theme-color meta
   $effect(() => {
@@ -39,8 +40,10 @@
   {/if}
 {/if}
 
-{#if sheets.current}
-  <!-- Task 12–15 fill in each kind -->
+{#if sheets.current?.kind === 'edit-item'}
+  {#key sheets.current.itemId}<EditItemSheet itemId={sheets.current.itemId} />{/key}
 {/if}
+<!-- Task 13–15 continue the chain with the remaining sheet kinds -->
+
 
 <Toast />
