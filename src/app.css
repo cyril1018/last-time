@@ -1,0 +1,31 @@
+:root {
+  --bg: #f6f7f4;
+  --surface: #ffffff;
+  --text: #1c1f1a;
+  --muted: #6b7266;
+  --line: #e3e6df;
+  --accent: #2f8f5b;
+  --accent-soft: #dff3e7;
+  --danger: #c43d3d;
+  --toast-bg: #1c1f1a;
+  --toast-text: #ffffff;
+  --radius: 14px;
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  --bg: #121411;
+  --surface: #1b1e19;
+  --text: #ecefe8;
+  --muted: #9aa294;
+  --line: #2a2e27;
+  --accent: #5fc18a;
+  --accent-soft: #1f3a2b;
+  --danger: #ff6b6b;
+  --toast-bg: #ecefe8;
+  --toast-text: #121411;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif; font-size: 100%; -webkit-text-size-adjust: 100%; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
