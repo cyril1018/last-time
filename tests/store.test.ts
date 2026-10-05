@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Store, FutureTimeError, EmptyNameError, NotFoundError } from '../src/lib/store.svelte'
 import { createDb, loadAll, type LastTimeDB } from '../src/lib/db'
 import type { KeyValueStorage } from '../src/lib/settings'
@@ -61,6 +61,29 @@ describe('addItemAndLog', () => {
     const a = await store.addItemAndLog('吃藥')
     await store.updateItem(a.item.id, { archived: true })
     expect(store.findByName('吃藥')?.id).toBe(a.item.id)
+  })
+})
+
+describe('addItemAndLog on archived items', () => {
+  it('unarchives the matching item and logs onto it', async () => {
+    const a = await store.addItemAndLog('吃藥')
+    await store.updateItem(a.item.id, { archived: true })
+    now += HOUR
+    const b = await store.addItemAndLog('吃藥')
+    expect(b.itemCreated).toBe(false)
+    expect(b.item.id).toBe(a.item.id)
+    expect(b.item.archived).toBe(false)
+    expect(store.itemById(a.item.id)?.archived).toBe(false)
+    expect((await loadAll(db)).items[0]?.archived).toBe(false)
+    expect(store.recordsOf(a.item.id)).toHaveLength(2)
+  })
+  it('logNow by id leaves the archived state alone', async () => {
+    const a = await store.addItemAndLog('吃藥')
+    await store.updateItem(a.item.id, { archived: true })
+    now += HOUR
+    await store.logNow(a.item.id)
+    expect(store.itemById(a.item.id)?.archived).toBe(true)
+    expect((await loadAll(db)).items[0]?.archived).toBe(true)
   })
 })
 
@@ -169,6 +192,29 @@ describe('bulk', () => {
     await store.clearAllData()
     expect(store.items).toEqual([])
     expect(store.settings).toEqual({ theme: 'dark', vibrate: false, lastBackupAt: null, backupSnoozeUntil: null })
+  })
+})
+
+describe('persistence failure', () => {
+  it('rolls back memory and rethrows the original error', async () => {
+    const a = await store.addItemAndLog('吃藥')
+    const items = store.items
+    const records = store.records
+    const boom = new Error('boom')
+    vi.spyOn(db.records, 'put').mockRejectedValueOnce(boom)
+    await expect(store.addRecord(a.item.id, T0 - HOUR)).rejects.toBe(boom)
+    expect(store.records).toEqual(records)
+    expect(store.items).toEqual(items)
+    expect((await loadAll(db)).records).toHaveLength(1)
+  })
+  it('still restores the snapshot and rethrows the original error when reload also fails', async () => {
+    const a = await store.addItemAndLog('吃藥')
+    const records = store.records
+    const boom = new Error('boom')
+    vi.spyOn(db.records, 'put').mockRejectedValueOnce(boom)
+    vi.spyOn(db.records, 'toArray').mockRejectedValueOnce(new Error('unreadable'))
+    await expect(store.addRecord(a.item.id, T0 - HOUR)).rejects.toBe(boom)
+    expect(store.records).toEqual(records)
   })
 })
 

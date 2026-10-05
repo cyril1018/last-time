@@ -81,13 +81,23 @@ export class Store {
 
   // ---- mutations ----
 
-  /** Apply an in-memory change, then persist; on failure reload from DB and rethrow. */
+  /**
+   * Apply an in-memory change, then persist. On failure restore the pre-change
+   * snapshot, best-effort reload from the DB, and rethrow the original error.
+   */
   private async commit(mutate: () => void, persist: () => Promise<void>): Promise<void> {
+    const snapshot = { items: this.items, records: this.records }
     mutate()
     try {
       await persist()
     } catch (e) {
-      await this.reload()
+      this.items = snapshot.items
+      this.records = snapshot.records
+      try {
+        await this.reload()
+      } catch {
+        // DB unreadable too: keep the restored snapshot, surface the original error
+      }
       throw e
     }
   }
@@ -100,7 +110,11 @@ export class Store {
     const name = normalizeName(rawName)
     if (!name) throw new EmptyNameError()
     const existing = this.findByName(name)
-    if (existing) return this.logNow(existing.id, ts)
+    if (existing) {
+      // Logging onto an archived item brings it back so the record shows on the home list.
+      if (existing.archived) await this.updateItem(existing.id, { archived: false })
+      return this.logNow(existing.id, ts)
+    }
 
     const item: Item = { id: newId(ts), name, emoji: guessEmoji(name), expectDays: null, archived: false, created: ts }
     const record: ItemRecord = { id: newId(ts), itemId: item.id, ts, note: '' }
