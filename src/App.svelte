@@ -6,6 +6,7 @@
   import Home from './components/Home.svelte'
   import ItemDetail from './components/ItemDetail.svelte'
   import EditItemSheet from './components/EditItemSheet.svelte'
+  import EditRecordSheet from './components/EditRecordSheet.svelte'
 
   // Theme: data-theme on <html> + theme-color meta
   $effect(() => {
@@ -42,8 +43,10 @@
 
 {#if sheets.current?.kind === 'edit-item'}
   {#key sheets.current.itemId}<EditItemSheet itemId={sheets.current.itemId} />{/key}
+{:else if sheets.current?.kind === 'edit-record'}
+  {#key sheets.current.recordId}<EditRecordSheet recordId={sheets.current.recordId} />{/key}
 {/if}
-<!-- Task 13–15 continue the chain with the remaining sheet kinds -->
+<!-- Task 14–15 continue the chain with the remaining sheet kinds -->
 
 
 <Toast />
