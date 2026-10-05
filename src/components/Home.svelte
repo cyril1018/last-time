@@ -25,6 +25,8 @@
   const exact = $derived(q ? store.findByName(q) : undefined)
   const showBanner = $derived(backupBannerVisible(store.records.length, store.settings, store.now))
 
+  let searchBar: ReturnType<typeof SearchBar> | undefined = $state()
+
   let flashId = $state<string | null>(null)
   function flash(id: string) {
     flashId = id
@@ -70,7 +72,7 @@
   {/if}
 
   {#if store.items.length === 0 && !q}
-    <EmptyState onpick={(t) => { query = t }} />
+    <EmptyState onpick={(t) => { query = t; searchBar?.focus() }} />
   {:else}
     <ul class="list">
       {#if q && (!exact || exact.archived)}
@@ -88,7 +90,7 @@
   {/if}
 
   <div class="spacer"></div>
-  <SearchBar bind:value={query} onsubmit={submit} autofocus={wantFocus} />
+  <SearchBar bind:this={searchBar} bind:value={query} onsubmit={submit} autofocus={wantFocus} />
 </div>
 
 <style>

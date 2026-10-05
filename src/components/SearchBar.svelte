@@ -2,6 +2,10 @@
   let { value = $bindable(''), onsubmit, autofocus = false }: { value: string; onsubmit: () => void; autofocus?: boolean } = $props()
   let input: HTMLInputElement | undefined = $state()
   $effect(() => { if (autofocus) input?.focus() })
+
+  export function focus(): void {
+    input?.focus()
+  }
 </script>
 
 <form class="bar" onsubmit={(e) => { e.preventDefault(); onsubmit() }}>

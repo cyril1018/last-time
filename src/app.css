@@ -51,4 +51,5 @@ button { cursor: pointer; }
 .field > span { font-size: 0.85rem; color: var(--muted); }
 .field input, .field textarea, .field select { width: 100%; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.fatal { max-width: 32rem; margin: 3rem auto; padding: 0 1.5rem; line-height: 1.6; text-align: center; }
 .page { max-width: 600px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }

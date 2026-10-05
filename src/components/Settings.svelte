@@ -42,6 +42,13 @@
     if (!res.ok) { toasts.show('不是『上次』的備份檔'); return }
     sheets.open({ kind: 'import', backup: res.backup })
   }
+  async function unarchive(id: string) {
+    try {
+      await store.updateItem(id, { archived: false })
+    } catch {
+      toasts.show('儲存失敗，請再試一次')
+    }
+  }
   async function clearAll() {
     if (!confirm('清除全部資料？所有項目和紀錄會刪除，無法復原。建議先匯出備份。')) return
     try {
@@ -89,7 +96,7 @@
     {:else}
       <ul class="plain">
         {#each archived as a (a.id)}
-          <li><span>{a.emoji} {a.name}</span><button class="btn" onclick={() => store.updateItem(a.id, { archived: false })}>取消封存</button></li>
+          <li><span>{a.emoji} {a.name}</span><button class="btn" onclick={() => unarchive(a.id)}>取消封存</button></li>
         {/each}
       </ul>
     {/if}

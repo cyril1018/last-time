@@ -53,4 +53,11 @@ describe('logAndToast', () => {
     expect(await logAndToast(Promise.reject(new Error('boom')))).toBeNull()
     expect(toasts.current?.message).toBe('儲存失敗，請再試一次')
   })
+
+  it('shows 復原失敗 when the undo fails', async () => {
+    undoLog.mockRejectedValueOnce(new Error('db'))
+    await logAndToast(Promise.resolve(result))
+    toasts.current!.actions[0]!.run()
+    await vi.waitFor(() => expect(toasts.current?.message).toBe('復原失敗'))
+  })
 })
