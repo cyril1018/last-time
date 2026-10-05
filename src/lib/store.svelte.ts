@@ -3,7 +3,7 @@ import {
   addMany, replaceAll, clearAll, type LastTimeDB,
 } from './db'
 import { loadSettings, saveSettings, type KeyValueStorage } from './settings'
-import { newId } from './ids'
+import { nextId } from './ids'
 import { guessEmoji } from './emoji'
 import { normalizeName, normalizeExpectDays, lastTsByItem } from './calc'
 import { DEFAULT_SETTINGS, type Item, type ItemRecord, type Settings } from './types'
@@ -116,8 +116,8 @@ export class Store {
       return this.logNow(existing.id, ts)
     }
 
-    const item: Item = { id: newId(ts), name, emoji: guessEmoji(name), expectDays: null, archived: false, created: ts }
-    const record: ItemRecord = { id: newId(ts), itemId: item.id, ts, note: '' }
+    const item: Item = { id: nextId(this.clock()), name, emoji: guessEmoji(name), expectDays: null, archived: false, created: ts }
+    const record: ItemRecord = { id: nextId(this.clock()), itemId: item.id, ts, note: '' }
     await this.commit(
       () => {
         this.items = [...this.items, item]
@@ -138,7 +138,7 @@ export class Store {
   async addRecord(itemId: string, ts: number, note = ''): Promise<ItemRecord> {
     if (!this.itemById(itemId)) throw new NotFoundError('item')
     this.assertNotFuture(ts)
-    const record: ItemRecord = { id: newId(this.clock()), itemId, ts, note }
+    const record: ItemRecord = { id: nextId(this.clock()), itemId, ts, note }
     await this.commit(
       () => { this.records = [...this.records, record] },
       () => putRecord(this.db, record),
@@ -149,8 +149,8 @@ export class Store {
   async addRecords(itemId: string, tss: number[], note = ''): Promise<ItemRecord[]> {
     if (!this.itemById(itemId)) throw new NotFoundError('item')
     tss.forEach((ts) => this.assertNotFuture(ts))
-    const base = this.clock()
-    const rs: ItemRecord[] = tss.map((ts, i) => ({ id: newId(base + i), itemId, ts, note }))
+    // nextId() bumps past the previous id, so a batch minted in one millisecond stays unique and ordered.
+    const rs: ItemRecord[] = tss.map((ts) => ({ id: nextId(this.clock()), itemId, ts, note }))
     await this.commit(
       () => { this.records = [...this.records, ...rs] },
       () => putRecords(this.db, rs),

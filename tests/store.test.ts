@@ -136,6 +136,13 @@ describe('records', () => {
     expect(store.recordsOf(a.item.id).map((r) => r.ts)).toEqual([T0, T0 - DAY, T0 - 2 * DAY, T0 - 3 * DAY])
     expect(rs.every((r) => r.note === 'x')).toBe(true)
   })
+  it('ids minted on a frozen clock stay unique and in creation order', async () => {
+    const a = await store.addItemAndLog('吃藥')
+    const rs = await store.addRecords(a.item.id, Array.from({ length: 50 }, (_, i) => T0 - (i + 1) * DAY))
+    const ids = [a.item.id, a.record.id, ...rs.map((r) => r.id)]
+    expect(new Set(ids).size).toBe(ids.length)
+    expect([...ids].sort()).toEqual(ids)
+  })
   it('updateRecord changes ts/note and rejects future ts', async () => {
     const a = await store.addItemAndLog('吃藥')
     await store.updateRecord(a.record.id, { ts: T0 - HOUR, note: '早上' })

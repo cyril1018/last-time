@@ -9,3 +9,15 @@ export function newId(now: number = Date.now(), rand: () => number = Math.random
   }
   return (time + tail).slice(0, 13)
 }
+
+let lastT = 0
+
+/**
+ * Monotonic id for new rows: the time prefix is bumped by 1 ms whenever `now` does not move past the
+ * previous id, so ids minted in the same millisecond never collide and sort (as strings) in creation order.
+ * The bump keeps the 13-char format: only the time value changes, never its length (8 base36 chars until 2059).
+ */
+export function nextId(now: number = Date.now()): string {
+  lastT = Math.max(now, lastT + 1)
+  return newId(lastT)
+}
