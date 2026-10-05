@@ -3,7 +3,13 @@ export type Route = { name: 'home' } | { name: 'item'; id: string } | { name: 's
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#/, '')
   const item = /^\/item\/([^/]+)$/.exec(path)
-  if (item) return { name: 'item', id: decodeURIComponent(item[1]!) }
+  if (item) {
+    try {
+      return { name: 'item', id: decodeURIComponent(item[1]!) }
+    } catch {
+      return { name: 'home' } // malformed %-escape
+    }
+  }
   if (path === '/settings') return { name: 'settings' }
   return { name: 'home' }
 }

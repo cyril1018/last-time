@@ -10,6 +10,9 @@ describe('router', () => {
     ['#/item/', { name: 'home' }],
     ['#/settings', { name: 'settings' }],
     ['#/whatever', { name: 'home' }],
+    ['#/item/%', { name: 'home' }],
+    ['#/item/%E0%A4%A', { name: 'home' }],
+    ['#/item/%E4%B8%8A', { name: 'item', id: '上' }],
   ])('parseHash(%j)', (hash, route) => {
     expect(parseHash(hash)).toEqual(route)
   })

@@ -7,7 +7,7 @@
     <div class="toast" role="status" aria-live="polite">
       <span class="msg">{toasts.current.message}</span>
       {#each toasts.current.actions as a (a.label)}
-        <button onclick={() => { a.run(); toasts.dismiss() }}>{a.label}</button>
+        <button onclick={() => { toasts.dismiss(); a.run() }}>{a.label}</button>
       {/each}
     </div>
   {/key}

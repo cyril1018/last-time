@@ -2,10 +2,23 @@ import type { KeyValueStorage } from './settings'
 
 type DraftStorage = KeyValueStorage & { removeItem(key: string): void }
 const PREFIX = 'lasttime.draft.'
-const defaultStorage = (): DraftStorage => globalThis.sessionStorage
+
+// Accessing sessionStorage can throw (SecurityError); drafts are best-effort, so fall back to a no-op.
+const noopStorage: DraftStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+const defaultStorage = (): DraftStorage => {
+  try {
+    return globalThis.sessionStorage ?? noopStorage
+  } catch {
+    return noopStorage
+  }
+}
 
 export function saveDraft(key: string, value: unknown, storage: DraftStorage = defaultStorage()): void {
-  storage.setItem(PREFIX + key, JSON.stringify(value))
+  try {
+    storage.setItem(PREFIX + key, JSON.stringify(value))
+  } catch {
+    // quota / private mode: drafts are best-effort
+  }
 }
 
 export function loadDraft<T>(key: string, storage: DraftStorage = defaultStorage()): T | null {
@@ -18,5 +31,9 @@ export function loadDraft<T>(key: string, storage: DraftStorage = defaultStorage
 }
 
 export function clearDraft(key: string, storage: DraftStorage = defaultStorage()): void {
-  storage.removeItem(PREFIX + key)
+  try {
+    storage.removeItem(PREFIX + key)
+  } catch {
+    // ignore
+  }
 }
