@@ -5,8 +5,8 @@
 
   let { title, children }: { title: string; children: Snippet } = $props()
 
-  // Focus the first field on open (the dialog itself if it has none), keep Tab inside, Escape = back key,
-  // and hand focus back to whatever opened the sheet once it closes.
+  // Focus the first field on open (the dialog itself on touch devices, or if it has none), keep Tab inside,
+  // Escape = back key, and hand focus back to whatever opened the sheet once it closes.
   const dialog = modal({ onEscape: () => sheets.close(), initialFocusWithin: '.body' })
 </script>
 

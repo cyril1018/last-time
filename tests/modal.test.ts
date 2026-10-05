@@ -129,3 +129,38 @@ describe('modal attachment', () => {
     expect(spy).not.toHaveBeenCalled()
   })
 })
+
+describe('modal initial focus by pointer type (fix round 1, F3)', () => {
+  const pointer = (coarse: boolean) =>
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: q === '(pointer: coarse)' && coarse }))
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  it('touch (coarse pointer): focuses the dialog itself, so no field raises the keyboard', () => {
+    pointer(true)
+    dialog = build('<input id="a" />')
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    expect(document.activeElement).toBe(dialog)
+  })
+
+  it('fine pointer: focuses the first field', () => {
+    pointer(false)
+    dialog = build('<input id="a" />')
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    expect(document.activeElement).toBe(byId('a'))
+  })
+
+  it('no matchMedia: behaves like a fine pointer', () => {
+    vi.stubGlobal('matchMedia', undefined)
+    dialog = build('<input id="a" />')
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    expect(document.activeElement).toBe(byId('a'))
+  })
+
+  it('touch: Tab from the focused dialog still stays inside', () => {
+    pointer(true)
+    dialog = build('<input id="a" /><button id="b">ok</button>')
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    expect(key('Tab', true).defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(byId('b'))
+  })
+})

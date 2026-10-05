@@ -7,10 +7,22 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ')
 
+/** Touch-first device: focusing a field there raises the on-screen keyboard and halves the sheet. */
+function touch(): boolean {
+  try {
+    return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+  } catch {
+    return false
+  }
+}
+
 export interface ModalOptions {
   /** Escape pressed while the dialog is open. */
   onEscape: () => void
-  /** Selector inside the dialog whose first focusable gets focus on open; the dialog itself when none. */
+  /**
+   * Selector inside the dialog whose first focusable gets focus on open; the dialog itself when none.
+   * On a touch device (coarse pointer) the dialog itself always gets it, so the keyboard does not pop up.
+   */
   initialFocusWithin?: string
 }
 
@@ -24,7 +36,7 @@ export function modal(opts: ModalOptions): (node: HTMLElement) => () => void {
     const active = document.activeElement
     const opener = active instanceof HTMLElement && active !== document.body ? active : null
 
-    const scope = opts.initialFocusWithin ? node.querySelector(opts.initialFocusWithin) : node
+    const scope = touch() ? null : opts.initialFocusWithin ? node.querySelector(opts.initialFocusWithin) : node
     ;(scope?.querySelector<HTMLElement>(FOCUSABLE) ?? node).focus()
 
     const onKey = (e: KeyboardEvent) => {
