@@ -18,9 +18,12 @@ export function createDb(name?: string): LastTimeDB {
   return new LastTimeDB(name)
 }
 
+/** Both tables from one read transaction, so the pair is a consistent snapshot. */
 export async function loadAll(db: LastTimeDB): Promise<{ items: Item[]; records: ItemRecord[] }> {
-  const [items, records] = await Promise.all([db.items.toArray(), db.records.toArray()])
-  return { items, records }
+  return db.transaction('r', db.items, db.records, async () => {
+    const [items, records] = await Promise.all([db.items.toArray(), db.records.toArray()])
+    return { items, records }
+  })
 }
 
 export async function putItem(db: LastTimeDB, item: Item): Promise<void> {

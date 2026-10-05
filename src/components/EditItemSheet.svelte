@@ -6,7 +6,7 @@
   import { toasts } from '../lib/toast.svelte'
   import { QUICK_EMOJIS } from '../lib/emoji'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
-  import { EmptyNameError } from '../lib/store.svelte'
+  import { DuplicateNameError, EmptyNameError } from '../lib/store.svelte'
   import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
 
@@ -38,7 +38,9 @@
       clearDraft(KEY)
       sheets.close()
     } catch (e) {
-      toasts.show(e instanceof EmptyNameError ? '請輸入名稱' : '儲存失敗，請再試一次')
+      toasts.show(
+        e instanceof EmptyNameError ? '請輸入名稱' : e instanceof DuplicateNameError ? '已有同名項目' : '儲存失敗，請再試一次',
+      )
     }
   })
 

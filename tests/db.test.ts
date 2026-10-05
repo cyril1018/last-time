@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   createDb, loadAll, putItem, deleteItemCascade, putRecord, putRecords, deleteRecord, addMany, replaceAll, clearAll,
   type LastTimeDB,
@@ -55,5 +55,39 @@ describe('db', () => {
     await addMany(db, [item('a')], [rec('r1', 'a')])
     await clearAll(db)
     expect(await loadAll(db)).toEqual({ items: [], records: [] })
+  })
+})
+
+describe('transactions roll back on a mid-transaction failure', () => {
+  const seed = () => addMany(db, [item('a'), item('b')], [rec('r1', 'a'), rec('r2', 'b')])
+  const before = { items: [item('a'), item('b')], records: [rec('r1', 'a'), rec('r2', 'b')] }
+
+  it('replaceAll: the clears and item writes are undone when the records write fails', async () => {
+    await seed()
+    vi.spyOn(db.records, 'bulkPut').mockRejectedValueOnce(new Error('boom'))
+    await expect(replaceAll(db, [item('new')], [rec('r9', 'new')])).rejects.toThrow('boom')
+    expect(await loadAll(db)).toEqual(before)
+  })
+  it('addMany: the item writes are undone when the records write fails', async () => {
+    await seed()
+    vi.spyOn(db.records, 'bulkPut').mockRejectedValueOnce(new Error('boom'))
+    await expect(addMany(db, [item('c')], [rec('r3', 'c')])).rejects.toThrow('boom')
+    expect(await loadAll(db)).toEqual(before)
+  })
+  it('deleteItemCascade: the record deletes are undone when the item delete fails', async () => {
+    await seed()
+    vi.spyOn(db.items, 'delete').mockRejectedValueOnce(new Error('boom'))
+    await expect(deleteItemCascade(db, 'a')).rejects.toThrow('boom')
+    expect(await loadAll(db)).toEqual(before)
+  })
+})
+
+describe('loadAll', () => {
+  it('reads both tables inside one read-only transaction', async () => {
+    await addMany(db, [item('a')], [rec('r1', 'a')])
+    const tx = vi.spyOn(db, 'transaction')
+    expect(await loadAll(db)).toEqual({ items: [item('a')], records: [rec('r1', 'a')] })
+    expect(tx).toHaveBeenCalledTimes(1)
+    expect(tx.mock.calls[0]?.[0]).toBe('r')
   })
 })

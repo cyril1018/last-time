@@ -16,6 +16,7 @@ const result: LogResult = {
   record: { id: 'r000000000001', itemId: 'i000000000001', ts, note: '' },
   item: { id: 'i000000000001', name: '吃藥', emoji: '💊', expectDays: null, archived: false, createdAt: ts },
   itemCreated: true,
+  itemUnarchived: false,
 } as unknown as LogResult
 
 beforeEach(() => {
