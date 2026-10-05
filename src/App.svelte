@@ -7,6 +7,7 @@
   import ItemDetail from './components/ItemDetail.svelte'
   import EditItemSheet from './components/EditItemSheet.svelte'
   import EditRecordSheet from './components/EditRecordSheet.svelte'
+  import BackdateSheet from './components/BackdateSheet.svelte'
 
   // Theme: data-theme on <html> + theme-color meta
   $effect(() => {
@@ -45,7 +46,9 @@
   {#key sheets.current.itemId}<EditItemSheet itemId={sheets.current.itemId} />{/key}
 {:else if sheets.current?.kind === 'edit-record'}
   {#key sheets.current.recordId}<EditRecordSheet recordId={sheets.current.recordId} />{/key}
-  <!-- Task 14–15: add the backdate and import branches here -->
+{:else if sheets.current?.kind === 'backdate'}
+  {#key sheets.current.itemId}<BackdateSheet itemId={sheets.current.itemId} />{/key}
+  <!-- Task 15: add the import branch here -->
 {/if}
 
 <Toast />
