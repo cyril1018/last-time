@@ -73,10 +73,8 @@
   {/if}
 
   {#if view.empty}
-    <EmptyState onpick={(t) => { query = t; searchBar?.focus() }} />
-    {#if view.archivedCount > 0}
-      <p class="archived-note muted small">有 {view.archivedCount} 個已封存的項目，可在設定取消封存</p>
-    {/if}
+    <EmptyState onpick={(t) => { query = t; searchBar?.focus() }}
+                note={view.archivedCount > 0 ? `有 ${view.archivedCount} 個已封存的項目，可在設定取消封存` : undefined} />
   {:else}
     <ul class="list">
       {#if view.showAdd}
@@ -107,6 +105,5 @@
   .add { list-style: none; }
   .add button { width: 100%; text-align: left; border: 0; background: var(--accent-soft); color: var(--accent); padding: 0.9rem 1rem; font-weight: 600; }
   .hint { text-align: center; margin: 1rem 0; }
-  .archived-note { text-align: center; margin: -1.5rem 1.5rem 1rem; } /* sits under EmptyState's bottom padding */
   .spacer { flex: 1; }
 </style>

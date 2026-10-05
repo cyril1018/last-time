@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mount, unmount, flushSync } from 'svelte'
 import Toast from '../src/components/Toast.svelte'
 import MonthCalendar from '../src/components/MonthCalendar.svelte'
+import EmptyState from '../src/components/EmptyState.svelte'
 import { toasts } from '../src/lib/toast.svelte'
 
 let target: HTMLElement
@@ -64,5 +65,20 @@ describe('MonthCalendar.svelte labels', () => {
     const label = (key: string) => target.querySelector(`button[aria-label^="${key}"]`)?.getAttribute('aria-label')
     expect(label('2026-09-10')).toBe('2026-09-10，已有紀錄')
     expect(label('2026-09-11')).toBe('2026-09-11')
+  })
+})
+
+describe('EmptyState.svelte note', () => {
+  it('renders the optional note inside the empty state, after the sample chips', () => {
+    component = mount(EmptyState, { target, props: { onpick: () => {}, note: '有 2 個已封存的項目，可在設定取消封存' } })
+    flushSync()
+    const note = target.querySelector('.empty > .note')
+    expect(note?.textContent).toBe('有 2 個已封存的項目，可在設定取消封存')
+    expect(note?.previousElementSibling?.classList.contains('chips')).toBe(true)
+  })
+  it('renders no note without one', () => {
+    component = mount(EmptyState, { target, props: { onpick: () => {} } })
+    flushSync()
+    expect(target.querySelector('.note')).toBeNull()
   })
 })

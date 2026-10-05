@@ -164,3 +164,37 @@ describe('modal initial focus by pointer type (fix round 1, F3)', () => {
     expect(document.activeElement).toBe(byId('b'))
   })
 })
+
+describe('modal minors (fix round 1, F4)', () => {
+  it('Escape during IME composition does not close the sheet', () => {
+    dialog = build('<input id="a" />')
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    const composing = new KeyboardEvent('keydown', { key: 'Escape', isComposing: true, bubbles: true, cancelable: true })
+    byId('a').dispatchEvent(composing)
+    const legacy = new KeyboardEvent('keydown', { key: 'Escape', keyCode: 229, bubbles: true, cancelable: true } as KeyboardEventInit)
+    byId('a').dispatchEvent(legacy)
+    expect(onEscape).not.toHaveBeenCalled()
+    expect(composing.defaultPrevented).toBe(false)
+    expect(legacy.defaultPrevented).toBe(false)
+  })
+
+  it.each([
+    ['a hidden control', '<button id="h" hidden>h</button>'],
+    ['a control inside display:none', '<div style="display:none"><button id="h">h</button></div>'],
+  ])('the trap ignores %s at the end of the dialog', (_name, tail) => {
+    dialog = build(`<input id="a" /><button id="b">ok</button>${tail}`)
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    byId('b').focus()
+    expect(key('Tab').defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(byId('close'))
+    byId('close').focus()
+    key('Tab', true)
+    expect(document.activeElement).toBe(byId('b'))
+  })
+
+  it('initial focus skips a field that is not rendered', () => {
+    dialog = build('<div style="display:none"><input id="n" /></div><input id="h" hidden /><input id="a" />')
+    teardown = modal({ onEscape, initialFocusWithin: '.body' })(dialog)
+    expect(document.activeElement).toBe(byId('a'))
+  })
+})

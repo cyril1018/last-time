@@ -7,6 +7,19 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ')
 
+/**
+ * Rendered, so focus can land on it: not under [hidden], and not display:none / content-visibility hidden
+ * (checkVisibility, or no layout boxes where that is missing).
+ */
+function rendered(el: HTMLElement): boolean {
+  if (el.closest('[hidden]')) return false
+  return typeof el.checkVisibility === 'function' ? el.checkVisibility() : el.getClientRects().length > 0
+}
+
+function focusables(root: ParentNode): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(rendered)
+}
+
 /** Touch-first device: focusing a field there raises the on-screen keyboard and halves the sheet. */
 function touch(): boolean {
   try {
@@ -37,17 +50,18 @@ export function modal(opts: ModalOptions): (node: HTMLElement) => () => void {
     const opener = active instanceof HTMLElement && active !== document.body ? active : null
 
     const scope = touch() ? null : opts.initialFocusWithin ? node.querySelector(opts.initialFocusWithin) : node
-    ;(scope?.querySelector<HTMLElement>(FOCUSABLE) ?? node).focus()
+    ;((scope && focusables(scope)[0]) ?? node).focus()
 
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return
       if (e.key === 'Escape') {
+        if (e.isComposing || e.keyCode === 229) return // the IME is cancelling its composition, not the sheet
         e.preventDefault()
         opts.onEscape()
         return
       }
       if (e.key !== 'Tab') return
-      const items = [...node.querySelectorAll<HTMLElement>(FOCUSABLE)]
+      const items = focusables(node)
       const first = items[0]
       const last = items[items.length - 1]
       if (!first || !last) {

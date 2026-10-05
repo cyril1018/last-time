@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { onpick }: { onpick: (text: string) => void } = $props()
+  let { onpick, note }: { onpick: (text: string) => void; note?: string } = $props()
   const samples = ['吃藥', '換濾心', '換瓦斯', '打電話給爸媽', '剪頭髮', '繳帳單']
 </script>
 
@@ -11,9 +11,11 @@
       <button class="btn" onclick={() => onpick(s)}>{s}</button>
     {/each}
   </div>
+  {#if note}<p class="note muted">{note}</p>{/if}
 </div>
 
 <style>
   .empty { padding: 3rem 1.5rem; text-align: center; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+  .note { margin: 1.5rem 0 0; font-size: 0.75rem; }
 </style>
