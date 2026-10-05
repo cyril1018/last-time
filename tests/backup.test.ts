@@ -87,6 +87,70 @@ describe('parseBackup tolerance', () => {
   })
 })
 
+describe('parseBackup cleanup', () => {
+  const parse = (o: object) => {
+    const res = parseBackup(JSON.stringify({ app: 'lasttime', ...o }))
+    if (!res.ok) throw new Error('rejected')
+    return res.backup
+  }
+  it('dedupes items and records by id, last wins, so counts and plans agree', () => {
+    const b = parse({
+      items: [{ id: 'a', name: 'first', created: 1 }, { id: 'b', name: 'b', created: 1 }, { id: 'a', name: 'second', created: 2 }],
+      records: [
+        { id: 'r1', itemId: 'a', ts: 1 }, { id: 'r1', itemId: 'a', ts: 2, note: 'later' },
+        { id: 'r9', itemId: 'ghost', ts: 3 }, { id: 'r9', itemId: 'ghost', ts: 4 },
+      ],
+    })
+    expect(b.items).toEqual([item('a', { name: 'second', created: 2 }), item('b')])
+    expect(b.records).toEqual([{ id: 'r1', itemId: 'a', ts: 2, note: 'later' }])
+    expect(b.orphanRecords).toEqual([{ id: 'r9', itemId: 'ghost', ts: 4, note: '' }])
+    expect(summarize(b)).toMatchObject({ itemCount: 2, recordCount: 1 })
+    expect(planReplace(b).items).toHaveLength(2)
+    expect(planMerge({ items: [], records: [] }, b)).toEqual({ items: b.items, records: b.records })
+  })
+  it('a record whose id repeats with a different item follows the last row', () => {
+    const b = parse({
+      items: [{ id: 'a', name: 'a', created: 1 }],
+      records: [{ id: 'r1', itemId: 'a', ts: 1 }, { id: 'r1', itemId: 'ghost', ts: 2 }],
+    })
+    expect(b.records).toEqual([])
+    expect(b.orphanRecords).toEqual([{ id: 'r1', itemId: 'ghost', ts: 2, note: '' }])
+  })
+  it('normalizes names and falls back to 未命名 for empty ones without dropping the item or its records', () => {
+    const b = parse({
+      items: [{ id: 'a', name: '  吃   藥 ', created: 1 }, { id: 'b', name: '   ', created: 1 }, { id: 'c', name: '', created: 1 }],
+      records: [{ id: 'r1', itemId: 'b', ts: 1 }, { id: 'r2', itemId: 'c', ts: 2 }],
+    })
+    expect(b.items.map((i) => i.name)).toEqual(['吃 藥', '未命名', '未命名'])
+    expect(b.records.map((r) => r.id)).toEqual(['r1', 'r2'])
+  })
+  it('falls back to 📌 for a missing, empty or blank emoji and trims a real one', () => {
+    const b = parse({
+      items: [
+        { id: 'a', name: 'a', created: 1 },
+        { id: 'b', name: 'b', created: 1, emoji: '' },
+        { id: 'c', name: 'c', created: 1, emoji: '   ' },
+        { id: 'd', name: 'd', created: 1, emoji: 5 },
+        { id: 'e', name: 'e', created: 1, emoji: ' 🔥 ' },
+      ],
+    })
+    expect(b.items.map((i) => i.emoji)).toEqual(['📌', '📌', '📌', '📌', '🔥'])
+  })
+  it('string expectDays go through normalizeExpectDays', () => {
+    const b = parse({
+      items: [
+        { id: 'a', name: 'a', created: 1, expectDays: '14' },
+        { id: 'b', name: 'b', created: 1, expectDays: ' 7 ' },
+        { id: 'c', name: 'c', created: 1, expectDays: '0x1A' },
+        { id: 'd', name: 'd', created: 1, expectDays: '1e2' },
+        { id: 'e', name: 'e', created: 1, expectDays: '0' },
+        { id: 'f', name: 'f', created: 1, expectDays: '' },
+      ],
+    })
+    expect(b.items.map((i) => i.expectDays)).toEqual([14, 7, null, null, null, null])
+  })
+})
+
 describe('summarize', () => {
   it('counts', () => {
     const res = parseBackup(serializeBackup([item('a'), item('b')], [rec('r1', 'a')], settings, 0))

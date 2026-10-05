@@ -24,4 +24,9 @@ describe('settings', () => {
     s.setItem(SETTINGS_KEY, JSON.stringify({ theme: 'blue', vibrate: 'yes', lastBackupAt: 'x' }))
     expect(loadSettings(s)).toEqual(DEFAULT_SETTINGS)
   })
+  it.each(['42', '"dark"', 'true', 'null', '[]', '["dark"]'])('a non-object stored value (%s) falls back to defaults', (stored) => {
+    const s = memStorage()
+    s.setItem(SETTINGS_KEY, stored)
+    expect(loadSettings(s)).toEqual(DEFAULT_SETTINGS)
+  })
 })

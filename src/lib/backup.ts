@@ -1,9 +1,11 @@
 import type { Item, ItemRecord, Settings, Theme } from './types'
-import { normalizeExpectDays } from './calc'
+import { normalizeExpectDays, normalizeName } from './calc'
 import { DEFAULT_EMOJI } from './emoji'
 
 export const BACKUP_APP = 'lasttime'
 export const BACKUP_VERSION = 1
+/** Name given to an imported item whose name is empty; dropping it would lose its records. */
+export const UNNAMED_ITEM = '未命名'
 
 export interface ParsedBackup {
   exportedAt: string | null
@@ -34,13 +36,19 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object
 const nonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
+/** Last row per id wins (the order of first appearance is kept). */
+function dedupeById<T extends { id: string }>(xs: T[]): T[] {
+  return [...new Map(xs.map((x) => [x.id, x] as const)).values()]
+}
+
 function toItem(raw: unknown): Item | null {
   if (!isObj(raw)) return null
   if (!nonEmptyString(raw['id']) || typeof raw['name'] !== 'string' || !finite(raw['created'])) return null
+  const emoji = typeof raw['emoji'] === 'string' ? raw['emoji'].trim() : ''
   return {
     id: raw['id'],
-    name: raw['name'],
-    emoji: nonEmptyString(raw['emoji']) ? raw['emoji'] : DEFAULT_EMOJI,
+    name: normalizeName(raw['name']) || UNNAMED_ITEM,
+    emoji: emoji || DEFAULT_EMOJI,
     expectDays: normalizeExpectDays(raw['expectDays']),
     archived: raw['archived'] === true,
     created: raw['created'],
@@ -63,9 +71,12 @@ export function parseBackup(text: string): ParseResult {
   if (!isObj(raw) || raw['app'] !== BACKUP_APP || !Array.isArray(raw['items'])) {
     return { ok: false, reason: 'not-lasttime' }
   }
-  const items = raw['items'].map(toItem).filter((i): i is Item => i !== null)
+  // Duplicate ids would otherwise inflate the summary counts beyond what the import actually stores.
+  const items = dedupeById(raw['items'].map(toItem).filter((i): i is Item => i !== null))
   const itemIds = new Set(items.map((i) => i.id))
-  const allRecords = (Array.isArray(raw['records']) ? raw['records'] : []).map(toRecord).filter((r): r is ItemRecord => r !== null)
+  const allRecords = dedupeById(
+    (Array.isArray(raw['records']) ? raw['records'] : []).map(toRecord).filter((r): r is ItemRecord => r !== null),
+  )
   const records = allRecords.filter((r) => itemIds.has(r.itemId))
   const orphanRecords = allRecords.filter((r) => !itemIds.has(r.itemId))
 
