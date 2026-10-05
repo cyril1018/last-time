@@ -8,6 +8,8 @@
   import EditItemSheet from './components/EditItemSheet.svelte'
   import EditRecordSheet from './components/EditRecordSheet.svelte'
   import BackdateSheet from './components/BackdateSheet.svelte'
+  import ImportSheet from './components/ImportSheet.svelte'
+  import Settings from './components/Settings.svelte'
 
   // Theme: data-theme on <html> + theme-color meta
   $effect(() => {
@@ -38,7 +40,7 @@
   {:else if router.route.name === 'item'}
     <ItemDetail id={router.route.id} />
   {:else}
-    <p class="page">設定（Task 15）</p>
+    <Settings />
   {/if}
 {/if}
 
@@ -48,7 +50,8 @@
   {#key sheets.current.recordId}<EditRecordSheet recordId={sheets.current.recordId} />{/key}
 {:else if sheets.current?.kind === 'backdate'}
   {#key sheets.current.itemId}<BackdateSheet itemId={sheets.current.itemId} />{/key}
-  <!-- Task 15: add the import branch here -->
+{:else if sheets.current?.kind === 'import'}
+  <ImportSheet backup={sheets.current.backup} />
 {/if}
 
 <Toast />
