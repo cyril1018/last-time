@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { loadSettings, saveSettings, SETTINGS_KEY, type KeyValueStorage } from '../src/lib/settings'
 import { DEFAULT_SETTINGS } from '../src/lib/types'
 
@@ -28,5 +28,41 @@ describe('settings', () => {
     const s = memStorage()
     s.setItem(SETTINGS_KEY, stored)
     expect(loadSettings(s)).toEqual(DEFAULT_SETTINGS)
+  })
+})
+
+describe('settings storage failures never throw', () => {
+  const throwing: KeyValueStorage = {
+    getItem: () => { throw new DOMException('denied', 'SecurityError') },
+    setItem: () => { throw new DOMException('full', 'QuotaExceededError') },
+  }
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+  afterEach(() => {
+    if (original) Object.defineProperty(globalThis, 'localStorage', original)
+    else delete (globalThis as { localStorage?: unknown }).localStorage
+  })
+  const denyLocalStorage = () => Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    get: () => { throw new DOMException('denied', 'SecurityError') },
+  })
+
+  it('load falls back to defaults when getItem throws', () => {
+    expect(loadSettings(throwing)).toEqual(DEFAULT_SETTINGS)
+  })
+  it('save ignores a setItem quota error', () => {
+    expect(() => saveSettings(DEFAULT_SETTINGS, throwing)).not.toThrow()
+  })
+  it('load falls back to defaults when touching localStorage itself throws', () => {
+    denyLocalStorage()
+    expect(loadSettings()).toEqual(DEFAULT_SETTINGS)
+  })
+  it('save is a no-op when touching localStorage itself throws', () => {
+    denyLocalStorage()
+    expect(() => saveSettings(DEFAULT_SETTINGS)).not.toThrow()
+  })
+  it('load and save work when there is no localStorage at all', () => {
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: undefined })
+    expect(loadSettings()).toEqual(DEFAULT_SETTINGS)
+    expect(() => saveSettings(DEFAULT_SETTINGS)).not.toThrow()
   })
 })

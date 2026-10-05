@@ -9,10 +9,17 @@ export interface KeyValueStorage {
 
 const THEMES: readonly Theme[] = ['system', 'light', 'dark']
 
+// Touching localStorage can throw (SecurityError when storage is blocked); settings then live in memory only.
+const noopStorage: KeyValueStorage = { getItem: () => null, setItem: () => {} }
 function defaultStorage(): KeyValueStorage {
-  return globalThis.localStorage
+  try {
+    return globalThis.localStorage ?? noopStorage
+  } catch {
+    return noopStorage
+  }
 }
 
+/** Never throws: unreadable or invalid storage yields the defaults. */
 export function loadSettings(storage: KeyValueStorage = defaultStorage()): Settings {
   let raw: unknown
   try {
@@ -32,5 +39,9 @@ export function loadSettings(storage: KeyValueStorage = defaultStorage()): Setti
 }
 
 export function saveSettings(s: Settings, storage: KeyValueStorage = defaultStorage()): void {
-  storage.setItem(SETTINGS_KEY, JSON.stringify(s))
+  try {
+    storage.setItem(SETTINGS_KEY, JSON.stringify(s))
+  } catch {
+    // quota / private mode: the in-memory settings still apply for this session
+  }
 }
