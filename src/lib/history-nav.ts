@@ -10,10 +10,18 @@
  * would act on the wrong entry (two queued backs can walk out of the app). So every change that depends
  * on the current entry goes through whenSettled(): it runs at once when nothing is in flight, otherwise
  * right after the pending popstate, once the router and sheets have re-synced from the new entry.
+ *
+ * Two safety valves keep the queue from wedging: a back() that produces no popstate within
+ * BACK_TIMEOUT_MS (e.g. nothing before the first entry of a standalone launch) stops counting as in flight,
+ * and a queued step that throws is logged and skipped.
  */
 export const SHEET_MARK = 'lasttime-sheet'
 
+/** How long a back() may take to land before the queue stops waiting for its popstate. */
+export const BACK_TIMEOUT_MS = 400
+
 let inFlight = false
+let watchdog: ReturnType<typeof setTimeout> | undefined
 let draining = false
 let started = false
 const waiting: Array<() => void> = []
@@ -23,7 +31,14 @@ function drain(): void {
   if (draining) return
   draining = true
   try {
-    while (!inFlight && waiting.length) waiting.shift()!()
+    while (!inFlight && waiting.length) {
+      const fn = waiting.shift()!
+      try {
+        fn()
+      } catch (e) {
+        console.error(e)
+      }
+    }
   } finally {
     draining = false
   }
@@ -33,7 +48,14 @@ export function startHistory(): void {
   if (started) return
   started = true
   window.addEventListener('popstate', () => {
-    for (const sync of syncers) sync()
+    clearTimeout(watchdog)
+    for (const sync of syncers) {
+      try {
+        sync()
+      } catch (e) {
+        console.error(e) // a broken syncer must not leave the traversal in flight forever
+      }
+    }
     inFlight = false
     drain()
   })
@@ -53,6 +75,12 @@ export function whenSettled(fn: () => void): void {
 /** history.back(), marking a traversal in flight. Only call from inside whenSettled(). */
 export function back(): void {
   inFlight = true
+  clearTimeout(watchdog)
+  // No popstate in time: the traversal went nowhere. Stop waiting; a late popstate still re-syncs.
+  watchdog = setTimeout(() => {
+    inFlight = false
+    drain()
+  }, BACK_TIMEOUT_MS)
   history.back()
 }
 

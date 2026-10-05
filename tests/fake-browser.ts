@@ -5,12 +5,14 @@ interface Entry { state: unknown; hash: string }
 /**
  * Minimal same-document session history: pushState/replaceState are synchronous, back()/go() are queued
  * like a real browser and only applied by flush(), which fires popstate (and hashchange when the fragment
- * changes). Going back past the first entry marks the app as left.
+ * changes). Going back past the first entry marks the app as left, unless `edge` is 'stay': then there is
+ * nothing before the first entry (a PWA launched on its own), and that back is a no-op with no popstate.
  */
 export class FakeBrowser {
   entries: Entry[]
   index: number
   left = false
+  edge: 'leave' | 'stay' = 'leave'
   private queued: number[] = []
   readonly window = new EventTarget()
 
@@ -52,6 +54,7 @@ export class FakeBrowser {
       if (d === undefined) return
       if (this.left) continue
       const target = this.index + d
+      if (target < 0 && this.edge === 'stay') continue
       if (target < 0) { this.left = true; this.queued = []; continue }
       if (target >= this.entries.length) continue
       const oldHash = this.top.hash
