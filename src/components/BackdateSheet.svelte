@@ -52,29 +52,29 @@
     for (const key of selected) {
       const [y, m, d] = key.split('-').map(Number)
       const ts = combineDateTime(new Date(y!, m! - 1, d!).getTime(), time)
-      if (ts === null) { toasts.show('請輸入有效時間'); return }
+      if (ts === null) { toasts.show(i18n.t.backdate.invalidTime); return }
       tss.push(ts)
     }
     try {
       await store.addRecords(initialId, tss)
       clearDraft(KEY)
       sheets.close()
-      toasts.show(`已加入 ${tss.length} 筆`)
+      toasts.show(i18n.t.backdate.added(tss.length))
     } catch (e) {
       toasts.show(saveErrorMessage(e, i18n.locale))
     }
   })
 </script>
 
-<Sheet title="補其他日期">
+<Sheet title={i18n.t.backdate.title}>
   <div class="nav">
-    <button class="icon-btn" aria-label="上個月" onclick={() => shift(-1)}>‹</button>
+    <button class="icon-btn" aria-label={i18n.t.backdate.prevMonth} onclick={() => shift(-1)}>‹</button>
     <strong>{monthLabel(year, month0, i18n.dateLocale)}</strong>
-    <button class="icon-btn" aria-label="下個月" onclick={() => shift(1)}>›</button>
+    <button class="icon-btn" aria-label={i18n.t.backdate.nextMonth} onclick={() => shift(1)}>›</button>
   </div>
   <MonthCalendar {year} {month0} todayTs={store.now} {selected} {marked} ontoggle={toggle} />
-  <label class="field" style="margin-top:1rem"><span>時間（套用到每一天）</span><input type="time" bind:value={time} step="60" /></label>
-  <button class="btn primary wide" disabled={selected.size === 0} onclick={add}>加入 {selected.size} 天</button>
+  <label class="field" style="margin-top:1rem"><span>{i18n.t.backdate.time}</span><input type="time" bind:value={time} step="60" /></label>
+  <button class="btn primary wide" disabled={selected.size === 0} onclick={add}>{i18n.t.backdate.add(selected.size)}</button>
 </Sheet>
 
 <style>

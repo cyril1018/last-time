@@ -36,7 +36,7 @@
     const patch: { ts?: number; note: string } = { note: note.trim() }
     if (when !== initialWhen) {
       const ts = fromDatetimeLocalValue(when)
-      if (ts === null) { toasts.show('請選擇時間'); return }
+      if (ts === null) { toasts.show(i18n.t.editRecord.pickTime); return }
       patch.ts = ts
     }
     try {
@@ -49,11 +49,11 @@
   })
 
   async function remove() {
-    if (!confirm('刪除這筆紀錄？')) return
+    if (!confirm(i18n.t.editRecord.confirmDelete)) return
     try {
       await store.deleteRecord(initialId)
     } catch {
-      toasts.show('刪除失敗，請再試一次')
+      toasts.show(i18n.t.common.deleteFailed)
       return
     }
     clearDraft(KEY)
@@ -63,12 +63,12 @@
   $effect(() => { if (!record) sheets.close() })
 </script>
 
-<Sheet title={item ? `${item.emoji} ${item.name}` : '紀錄'}>
-  <label class="field"><span>時間</span><input type="datetime-local" bind:value={when} {max} step="60" /></label>
-  <label class="field"><span>備註</span><textarea bind:value={note} rows="3" placeholder="可留空"></textarea></label>
+<Sheet title={item ? `${item.emoji} ${item.name}` : i18n.t.editRecord.fallbackTitle}>
+  <label class="field"><span>{i18n.t.editRecord.time}</span><input type="datetime-local" bind:value={when} {max} step="60" /></label>
+  <label class="field"><span>{i18n.t.editRecord.note}</span><textarea bind:value={note} rows="3" placeholder={i18n.t.editRecord.notePlaceholder}></textarea></label>
   <div class="actions">
-    <button class="btn danger" onclick={remove}>刪除這筆</button>
-    <button class="btn primary" onclick={save}>儲存</button>
+    <button class="btn danger" onclick={remove}>{i18n.t.editRecord.delete}</button>
+    <button class="btn primary" onclick={save}>{i18n.t.common.save}</button>
   </div>
 </Sheet>
 

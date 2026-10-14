@@ -14,7 +14,7 @@
   const backup = untrack(() => backupProp)
   const s = summarize(backup)
   const exported = s.exportedAt ? new Date(s.exportedAt) : null
-  const exportedText = exported && !Number.isNaN(exported.getTime()) ? exported.toLocaleString(i18n.dateLocale) : '不明'
+  const exportedText = exported && !Number.isNaN(exported.getTime()) ? exported.toLocaleString(i18n.dateLocale) : i18n.t.import.unknown
 
   // One guard for both buttons: a merge in flight blocks a replace and vice versa.
   const guarded = exclusive((task: () => Promise<void>) => task())
@@ -24,37 +24,37 @@
     try {
       await store.mergeIn(plan.items, plan.records)
       sheets.close()
-      toasts.show(`已匯入 ${plan.items.length} 個項目、${plan.records.length} 筆紀錄`)
+      toasts.show(i18n.t.import.imported(plan.items.length, plan.records.length))
     } catch {
-      toasts.show('匯入失敗，資料未變動')
+      toasts.show(i18n.t.import.failed)
     }
   })
 
   const replace = () => guarded(async () => {
-    if (!confirm('覆蓋現有資料？目前的項目和紀錄會全部刪除，無法復原。')) return
+    if (!confirm(i18n.t.import.confirmReplace)) return
     const plan = planReplace(backup)
     try {
       await store.replaceWith(plan.items, plan.records)
       store.updateSettings({ ...backup.settings })
       sheets.close()
-      toasts.show(`已匯入 ${plan.items.length} 個項目、${plan.records.length} 筆紀錄`)
+      toasts.show(i18n.t.import.imported(plan.items.length, plan.records.length))
     } catch {
-      toasts.show('匯入失敗，資料未變動')
+      toasts.show(i18n.t.import.failed)
     }
   })
 </script>
 
-<Sheet title="匯入備份">
+<Sheet title={i18n.t.import.title}>
   <dl>
-    <dt class="muted">匯出日期</dt><dd>{exportedText}</dd>
-    <dt class="muted">項目</dt><dd>{s.itemCount} 個</dd>
-    <dt class="muted">紀錄</dt><dd>{s.recordCount} 筆</dd>
+    <dt class="muted">{i18n.t.import.exportedAt}</dt><dd>{exportedText}</dd>
+    <dt class="muted">{i18n.t.import.items}</dt><dd>{i18n.t.import.itemCount(s.itemCount)}</dd>
+    <dt class="muted">{i18n.t.import.records}</dt><dd>{i18n.t.import.recordCount(s.recordCount)}</dd>
   </dl>
   <div class="actions">
-    <button class="btn" onclick={merge}>合併到現有資料</button>
-    <button class="btn danger" onclick={replace}>覆蓋現有資料</button>
+    <button class="btn" onclick={merge}>{i18n.t.import.merge}</button>
+    <button class="btn danger" onclick={replace}>{i18n.t.import.replace}</button>
   </div>
-  <p class="muted small">合併：已有的項目和紀錄不動，只加入新的。覆蓋：先清空再寫入，並套用備份裡的主題和震動設定。</p>
+  <p class="muted small">{i18n.t.import.explain}</p>
 </Sheet>
 
 <style>

@@ -104,3 +104,17 @@ describe('EmptyState.svelte in English', () => {
     expect(target.textContent).toContain('Note when you last did something')
   })
 })
+
+describe('MonthCalendar.svelte in English', () => {
+  afterEach(() => { i18n.languages = ['zh-TW'] })
+  it('renders the repeated weekday letters and English labels', () => {
+    i18n.languages = ['en-US']
+    component = mount(MonthCalendar, {
+      target,
+      props: { year: 2026, month0: 8, todayTs: new Date(2026, 8, 20, 10).getTime(), selected: new Set<string>(), marked: new Set(['2026-09-10']), ontoggle: () => {} },
+    })
+    flushSync()
+    expect([...target.querySelectorAll('.wd')].map((w) => w.textContent)).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+    expect(target.querySelector('button[aria-label^="2026-09-10"]')?.getAttribute('aria-label')).toBe('2026-09-10, has entries')
+  })
+})

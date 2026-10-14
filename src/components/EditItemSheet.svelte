@@ -39,37 +39,37 @@
       clearDraft(KEY)
       sheets.close()
     } catch (e) {
-      toasts.show(saveErrorMessage(e, i18n.locale)) // 請輸入名稱 / 已有同名項目 / 儲存失敗
+      toasts.show(saveErrorMessage(e, i18n.locale)) // empty name / duplicate name / save failed
     }
   })
 
   async function remove() {
-    if (!confirm(`刪除「${item?.name ?? ''}」？會連同 ${recordCount} 筆紀錄一起刪除，無法復原。`)) return
+    if (!confirm(i18n.t.editItem.confirmDelete(item?.name ?? '', recordCount))) return
     clearDraft(KEY)
     sheets.closeThen(async () => {
       try {
         await store.deleteItem(initialId)
         router.home()
       } catch {
-        toasts.show('刪除失敗，請再試一次')
+        toasts.show(i18n.t.common.deleteFailed)
       }
     })
   }
 </script>
 
-<Sheet title="編輯項目">
-  <label class="field"><span>名稱</span><input bind:value={name} required /></label>
-  <label class="field"><span>圖示</span><input bind:value={emoji} maxlength="8" /></label>
-  <div class="quick" role="group" aria-label="常用圖示">
+<Sheet title={i18n.t.editItem.title}>
+  <label class="field"><span>{i18n.t.editItem.name}</span><input bind:value={name} required /></label>
+  <label class="field"><span>{i18n.t.editItem.icon}</span><input bind:value={emoji} maxlength="8" /></label>
+  <div class="quick" role="group" aria-label={i18n.t.editItem.quickIcons}>
     {#each QUICK_EMOJIS as q (q)}
-      <button type="button" class:on={q === emoji} onclick={() => { emoji = q }} aria-label="選擇 {q}">{q}</button>
+      <button type="button" class:on={q === emoji} onclick={() => { emoji = q }} aria-label={i18n.t.editItem.pick(q)}>{q}</button>
     {/each}
   </div>
-  <label class="field"><span>大概多久做一次（天，留空不判斷）</span><input bind:value={expectDays} inputmode="numeric" pattern="[0-9]*" placeholder="例如 14" /></label>
-  <label class="toggle"><input type="checkbox" bind:checked={archived} /> 封存（首頁不顯示，紀錄保留）</label>
+  <label class="field"><span>{i18n.t.editItem.expectDays}</span><input bind:value={expectDays} inputmode="numeric" pattern="[0-9]*" placeholder={i18n.t.editItem.expectPlaceholder} /></label>
+  <label class="toggle"><input type="checkbox" bind:checked={archived} /> {i18n.t.editItem.archive}</label>
   <div class="actions">
-    <button class="btn danger" onclick={remove}>刪除項目</button>
-    <button class="btn primary" onclick={save}>儲存</button>
+    <button class="btn danger" onclick={remove}>{i18n.t.editItem.delete}</button>
+    <button class="btn primary" onclick={save}>{i18n.t.common.save}</button>
   </div>
 </Sheet>
 
