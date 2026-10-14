@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
+import type { Plugin } from 'vite'
+import { MANIFEST_FILE } from './src/lib/i18n/locale'
 
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 
@@ -16,6 +18,7 @@ const isVitest = Boolean(process.env['VITEST'])
 export const pwaOptions: Partial<VitePWAOptions> = {
   registerType: 'prompt', // new SW waits until all tabs close; never reloads mid-use
   includeAssets: ['icon.svg', 'apple-touch-icon-180x180.png'],
+  manifestFilename: MANIFEST_FILE['zh-TW'],
   manifest: {
     id: base,
     name: '上次',
@@ -44,11 +47,33 @@ export const pwaOptions: Partial<VitePWAOptions> = {
   },
 }
 
+const zhManifest = pwaOptions.manifest as NonNullable<Exclude<VitePWAOptions['manifest'], false>>
+
+/** Spec §6: same app (id, scope, icons), English words. App.svelte points the manifest link at it. */
+export const enManifest = {
+  ...zhManifest,
+  name: 'Last Time',
+  short_name: 'Last Time',
+  description: 'Track how many days since you last did something.',
+  lang: 'en',
+  shortcuts: zhManifest.shortcuts?.map((s) => ({ ...s, name: 'Add item', short_name: 'Add' })),
+}
+
+function englishManifest(): Plugin {
+  return {
+    name: 'last-time:manifest-en',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: MANIFEST_FILE.en, source: JSON.stringify(enManifest) })
+    },
+  }
+}
+
 export default defineConfig({
   base,
   define: { __APP_VERSION__: JSON.stringify(version) },
   // Tests never import virtual:pwa-register, so the service-worker plugin is dead weight under vitest.
-  plugins: [svelte(), ...(isVitest ? [] : [VitePWA(pwaOptions)])],
+  plugins: [svelte(), ...(isVitest ? [] : [VitePWA(pwaOptions), englishManifest()])],
   resolve: isVitest ? { conditions: ['browser'] } : undefined,
   test: {
     include: ['tests/**/*.test.ts'],
