@@ -5,11 +5,13 @@ import Toast from '../src/components/Toast.svelte'
 import MonthCalendar from '../src/components/MonthCalendar.svelte'
 import EmptyState from '../src/components/EmptyState.svelte'
 import { toasts } from '../src/lib/toast.svelte'
+import { i18n } from '../src/lib/i18n/i18n.svelte'
 
 let target: HTMLElement
 let component: ReturnType<typeof mount> | undefined
 
 beforeEach(() => {
+  i18n.languages = ['zh-TW']
   document.body.innerHTML = ''
   target = document.createElement('div')
   document.body.append(target)
@@ -80,5 +82,25 @@ describe('EmptyState.svelte note', () => {
     component = mount(EmptyState, { target, props: { onpick: () => {} } })
     flushSync()
     expect(target.querySelector('.note')).toBeNull()
+  })
+})
+
+describe('EmptyState.svelte in English', () => {
+  afterEach(() => { i18n.languages = ['zh-TW'] })
+  it('shows the English intro and sample chips', () => {
+    i18n.languages = ['en-US']
+    component = mount(EmptyState, { target, props: { onpick: () => {} } })
+    flushSync()
+    expect(target.textContent).toContain("Note when you last did something")
+    const chips = [...target.querySelectorAll('.chips button')].map((b) => b.textContent)
+    expect(chips).toEqual(['Take meds', 'Change water filter', 'Replace gas tank', 'Call mom and dad', 'Haircut', 'Pay bills'])
+  })
+  it('switches language while mounted', () => {
+    component = mount(EmptyState, { target, props: { onpick: () => {} } })
+    flushSync()
+    expect(target.textContent).toContain('記下你上次做某件事的時間')
+    i18n.languages = ['en-US']
+    flushSync()
+    expect(target.textContent).toContain('Note when you last did something')
   })
 })

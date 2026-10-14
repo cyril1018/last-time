@@ -1,13 +1,13 @@
 <script lang="ts">
+  import { i18n } from '../lib/i18n/i18n.svelte'
   let { onpick, note }: { onpick: (text: string) => void; note?: string } = $props()
-  const samples = ['吃藥', '換濾心', '換瓦斯', '打電話給爸媽', '剪頭髮', '繳帳單']
 </script>
 
 <div class="empty">
-  <p>記下你上次做某件事的時間，之後一眼就知道過了幾天。</p>
-  <p class="muted">在下面輸入一件事，按完成就記下第一筆。</p>
+  <p>{i18n.t.empty.intro}</p>
+  <p class="muted">{i18n.t.empty.howTo}</p>
   <div class="chips">
-    {#each samples as s (s)}
+    {#each i18n.t.empty.samples as s (s)}
       <button class="btn" onclick={() => onpick(s)}>{s}</button>
     {/each}
   </div>

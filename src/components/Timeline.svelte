@@ -17,7 +17,7 @@
         {#if r.note}<span class="note muted">{r.note}</span>{/if}
       </button>
       {#if i < records.length - 1}
-        <div class="gap muted small">{gaps[i] === 0 ? '同一天' : `空缺 ${gaps[i]} 天`}</div>
+        <div class="gap muted small">{gaps[i] === 0 ? i18n.t.timeline.sameDay : i18n.t.timeline.gap(gaps[i]!)}</div>
       {/if}
     </li>
   {/each}

@@ -6,6 +6,7 @@ const close = vi.hoisted(() => vi.fn())
 vi.mock('../src/lib/sheet.svelte', () => ({ sheets: { close } }))
 
 import Sheet from '../src/components/Sheet.svelte'
+import { i18n } from '../src/lib/i18n/i18n.svelte'
 
 const children = createRawSnippet(() => ({ render: () => '<div><input id="name" /><button id="save">儲存</button></div>' }))
 
@@ -13,6 +14,7 @@ const children = createRawSnippet(() => ({ render: () => '<div><input id="name" 
 let coarse = false
 
 beforeEach(() => {
+  i18n.languages = ['zh-TW']
   document.body.innerHTML = ''
   close.mockClear()
   vi.stubGlobal('matchMedia', (q: string) => ({ matches: q === '(pointer: coarse)' && coarse }))
@@ -20,6 +22,19 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals() })
 
 describe('Sheet.svelte', () => {
+  it('labels the close button in the current language', () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    let c = mount(Sheet, { target, props: { title: 'x', children } })
+    flushSync()
+    expect(target.querySelector('header .icon-btn')?.getAttribute('aria-label')).toBe('關閉')
+    unmount(c)
+    i18n.languages = ['en']
+    c = mount(Sheet, { target, props: { title: 'x', children } })
+    flushSync()
+    expect(target.querySelector('header .icon-btn')?.getAttribute('aria-label')).toBe('Close')
+    unmount(c)
+  })
   it('is an aria-modal dialog that takes focus, closes on Escape and returns focus on unmount', () => {
     const opener = document.createElement('button')
     document.body.append(opener)

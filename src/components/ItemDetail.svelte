@@ -27,29 +27,29 @@
 {#if item}
   <div class="page">
     <header>
-      <button class="icon-btn" aria-label="返回" onclick={() => router.home()}>‹</button>
+      <button class="icon-btn" aria-label={i18n.t.common.back} onclick={() => router.home()}>‹</button>
       <div class="title">
         <h1><span aria-hidden="true">{item.emoji}</span> {item.name}</h1>
         <p class="muted small">
-          {#if item.expectDays}大概每 {item.expectDays} 天一次{/if}
-          {#if item.archived}{item.expectDays ? ' · ' : ''}已封存{/if}
+          {#if item.expectDays}{i18n.t.detail.everyDays(item.expectDays)}{/if}
+          {#if item.archived}{item.expectDays ? ' · ' : ''}{i18n.t.detail.archived}{/if}
         </p>
       </div>
-      <button class="icon-btn" aria-label="編輯項目" onclick={() => sheets.open({ kind: 'edit-item', itemId: id })}>✎</button>
+      <button class="icon-btn" aria-label={i18n.t.detail.edit} onclick={() => sheets.open({ kind: 'edit-item', itemId: id })}>✎</button>
     </header>
 
     <section class="summary">
       <div>
-        <span class="label muted">距上次</span>
-        <span class="val num-font" class:danger={due}>{parts ? parts.number + parts.unit : '—'}</span>
+        <span class="label muted">{i18n.t.detail.sinceLast}</span>
+        <span class="val num-font" class:danger={due}>{parts ? i18n.t.detail.sinceValue(parts.number, parts.unit) : '—'}</span>
       </div>
       <div>
-        <span class="label muted">平均間隔</span>
-        <span class="val num-font">{avg === null ? '' : formatIntervalDays(avg) + ' 天'}</span>
-        {#if avg === null}<span class="muted tiny">記滿 3 次後計算</span>{/if}
+        <span class="label muted">{i18n.t.detail.averageGap}</span>
+        <span class="val num-font">{avg === null ? '' : i18n.t.detail.averageValue(formatIntervalDays(avg))}</span>
+        {#if avg === null}<span class="muted tiny">{i18n.t.detail.averagePending}</span>{/if}
       </div>
       <div>
-        <span class="label muted">共幾次</span>
+        <span class="label muted">{i18n.t.detail.count}</span>
         <span class="val num-font">{records.length}</span>
       </div>
     </section>
@@ -58,8 +58,8 @@
 
     <div class="spacer"></div>
     <footer>
-      <button class="btn primary wide" onclick={() => logNow()}>立即記錄</button>
-      <button class="btn" onclick={() => sheets.open({ kind: 'backdate', itemId: id })}>補其他日期</button>
+      <button class="btn primary wide" onclick={() => logNow()}>{i18n.t.detail.logNow}</button>
+      <button class="btn" onclick={() => sheets.open({ kind: 'backdate', itemId: id })}>{i18n.t.detail.backdate}</button>
     </footer>
   </div>
 {/if}

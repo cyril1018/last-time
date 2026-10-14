@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { i18n } from '../lib/i18n/i18n.svelte'
   let { value = $bindable(''), onsubmit, autofocus = false }: { value: string; onsubmit: () => void; autofocus?: boolean } = $props()
   let input: HTMLInputElement | undefined = $state()
   $effect(() => { if (autofocus) input?.focus() })
@@ -10,7 +11,7 @@
 
 <form class="bar" onsubmit={(e) => { e.preventDefault(); onsubmit() }}>
   <input bind:this={input} bind:value type="search" enterkeyhint="done" autocomplete="off"
-         placeholder="搜尋或新增一件事" aria-label="搜尋或新增一件事" />
+         placeholder={i18n.t.home.search} aria-label={i18n.t.home.search} />
 </form>
 
 <style>

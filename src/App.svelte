@@ -2,6 +2,8 @@
   import { store } from './lib/app-store'
   import { router } from './lib/router.svelte'
   import { sheets } from './lib/sheet.svelte'
+  import { i18n } from './lib/i18n/i18n.svelte'
+  import { applyLocaleToDocument } from './lib/i18n/locale'
   import Toast from './components/Toast.svelte'
   import Home from './components/Home.svelte'
   import ItemDetail from './components/ItemDetail.svelte'
@@ -24,6 +26,10 @@
     mq.addEventListener('change', apply)
     return () => mq.removeEventListener('change', apply)
   })
+
+  // Language: follow system language changes, keep <html lang> and the manifest link in step
+  $effect(() => i18n.start())
+  $effect(() => { applyLocaleToDocument(i18n.locale, document, import.meta.env.BASE_URL) })
 
   // Clock: re-evaluate 剛剛/N 小時 every minute and when returning to the foreground
   $effect(() => {

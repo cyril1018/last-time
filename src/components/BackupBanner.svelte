@@ -1,12 +1,13 @@
 <script lang="ts">
   import { router } from '../lib/router.svelte'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   let { onlater }: { onlater: () => void } = $props()
 </script>
 
 <div class="banner" role="note">
-  <span>資料只存在這支手機的瀏覽器裡，建議備份一份。</span>
-  <button class="btn" onclick={() => router.navigate({ name: 'settings' })}>去備份</button>
-  <button class="icon-btn" onclick={onlater}>之後</button>
+  <span>{i18n.t.banner.text}</span>
+  <button class="btn" onclick={() => router.navigate({ name: 'settings' })}>{i18n.t.banner.go}</button>
+  <button class="icon-btn" onclick={onlater}>{i18n.t.banner.later}</button>
 </div>
 
 <style>

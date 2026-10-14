@@ -1,5 +1,6 @@
 <script lang="ts">
   import { store } from '../lib/app-store'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import { router } from '../lib/router.svelte'
   import { recent7, backupBannerVisible, DAY_MS } from '../lib/calc'
   import { homeView } from '../lib/home-view'
@@ -60,12 +61,12 @@
 
 <div class="page">
   <header>
-    <h1>上次</h1>
-    <div class="stats" aria-label="最近 7 天做過 {stats.done} / {stats.total}">
+    <h1>{i18n.t.app.name}</h1>
+    <div class="stats" aria-label={i18n.t.home.statsLabel(stats.done, stats.total)}>
       <span class="num-font big">{stats.done} / {stats.total}</span>
-      <span class="muted small">最近 7 天做過</span>
+      <span class="muted small">{i18n.t.home.statsCaption}</span>
     </div>
-    <button class="icon-btn" aria-label="設定" onclick={() => router.navigate({ name: 'settings' })}>⚙︎</button>
+    <button class="icon-btn" aria-label={i18n.t.home.settings} onclick={() => router.navigate({ name: 'settings' })}>⚙︎</button>
   </header>
 
   {#if showBanner}
@@ -74,12 +75,12 @@
 
   {#if view.empty}
     <EmptyState onpick={(t) => { query = t; searchBar?.focus() }}
-                note={view.archivedCount > 0 ? `有 ${view.archivedCount} 個已封存的項目，可在設定取消封存` : undefined} />
+                note={view.archivedCount > 0 ? i18n.t.home.archivedNote(view.archivedCount) : undefined} />
   {:else}
     <ul class="list">
       {#if view.showAdd}
         <li class="add">
-          <button onclick={submit}>{view.addLabelKind === 'restore' ? `＋ 恢復『${view.query}』，以現在的時間記一筆` : `＋ 新增『${view.query}』，以現在的時間記下第一筆`}</button>
+          <button onclick={submit}>{view.addLabelKind === 'restore' ? i18n.t.home.addRestore(view.query) : i18n.t.home.addNew(view.query)}</button>
         </li>
       {/if}
       {#each view.visible as item (item.id)}
@@ -88,7 +89,7 @@
                  onlog={() => logItem(item.id)} />
       {/each}
     </ul>
-    <p class="hint muted small">點一下看細節，長按直接記一筆</p>
+    <p class="hint muted small">{i18n.t.home.hint}</p>
   {/if}
 
   <div class="spacer"></div>

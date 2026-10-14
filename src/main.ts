@@ -4,6 +4,7 @@ import App from './App.svelte'
 import { store } from './lib/app-store'
 import { router } from './lib/router.svelte'
 import { sheets } from './lib/sheet.svelte'
+import { i18n } from './lib/i18n/i18n.svelte'
 import { registerSW } from 'virtual:pwa-register'
 
 router.start()
@@ -14,7 +15,7 @@ store.init().catch((e: unknown) => {
   const msg = document.createElement('p')
   msg.className = 'fatal'
   msg.setAttribute('role', 'alert')
-  msg.textContent = '無法開啟資料庫，請重新整理；若持續發生，請清除網站資料前先確認已有備份。'
+  msg.textContent = i18n.t.app.dbFailed
   document.body.append(msg)
 })
 if (navigator.storage?.persist) void navigator.storage.persist()

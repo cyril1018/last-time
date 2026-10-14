@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import type { Snippet } from 'svelte'
   import { sheets } from '../lib/sheet.svelte'
   import { modal } from '../lib/modal'
@@ -14,7 +15,7 @@
 <div class="sheet" role="dialog" aria-modal="true" aria-label={title} tabindex="-1" {@attach dialog}>
   <header>
     <h2>{title}</h2>
-    <button class="icon-btn" aria-label="關閉" onclick={() => sheets.close()}>✕</button>
+    <button class="icon-btn" aria-label={i18n.t.common.close} onclick={() => sheets.close()}>✕</button>
   </header>
   <div class="body">{@render children()}</div>
 </div>

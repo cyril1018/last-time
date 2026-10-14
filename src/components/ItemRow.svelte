@@ -26,13 +26,13 @@
       {#if s}
         <span class="num num-font" style:font-size="{style.fontSizePx / 16}rem" style:font-weight={style.fontWeight}>{parts.number}</span>
         <span class="unit">{parts.unit}</span>
-        <span class="when muted">{due ? '該做了 · ' : ''}{formatShort(lastTs!, i18n.dateLocale)}</span>
+        <span class="when muted">{due ? i18n.t.row.due : ''}{formatShort(lastTs!, i18n.dateLocale)}</span>
       {:else}
-        <span class="when muted">尚未記錄</span>
+        <span class="when muted">{i18n.t.row.notLogged}</span>
       {/if}
     </span>
   </div>
-  <button class="sr-only" onclick={onlog}>記一筆：{item.name}</button>
+  <button class="sr-only" onclick={onlog}>{i18n.t.row.logLabel(item.name)}</button>
 </li>
 
 <style>
