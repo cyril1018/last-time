@@ -1,5 +1,7 @@
 export const DEFAULT_EMOJI = '📌'
 
+export type EmojiCategoryId = 'chores' | 'care' | 'health' | 'exercise' | 'living' | 'transport' | 'money' | 'home' | 'social'
+
 /** Spec §4.3, ordered: first keyword hit wins. */
 export const EMOJI_RULES: ReadonlyArray<readonly [string[], string]> = [
   [['床單', '棉被', '枕', '床'], '🛏️'],
