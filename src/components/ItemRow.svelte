@@ -2,6 +2,7 @@
   import type { Item } from '../lib/types'
   import { since, sinceParts, numberStyle, isDue } from '../lib/calc'
   import { formatShort } from '../lib/format'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import { longpress } from '../lib/longpress'
 
   let { item, lastTs, now, flash, onopen, onlog }: {
@@ -9,7 +10,7 @@
   } = $props()
 
   const s = $derived(lastTs === undefined ? null : since(lastTs, now))
-  const parts = $derived(s ? sinceParts(s) : { number: '', unit: '' })
+  const parts = $derived(s ? sinceParts(s, i18n.locale) : { number: '', unit: '' })
   const style = $derived(s ? numberStyle(s) : { fontSizePx: 18, fontWeight: 420 })
   const due = $derived(s ? isDue(item.expectDays, s) : false)
 </script>
@@ -25,7 +26,7 @@
       {#if s}
         <span class="num num-font" style:font-size="{style.fontSizePx / 16}rem" style:font-weight={style.fontWeight}>{parts.number}</span>
         <span class="unit">{parts.unit}</span>
-        <span class="when muted">{due ? '該做了 · ' : ''}{formatShort(lastTs!)}</span>
+        <span class="when muted">{due ? '該做了 · ' : ''}{formatShort(lastTs!, i18n.dateLocale)}</span>
       {:else}
         <span class="when muted">尚未記錄</span>
       {/if}

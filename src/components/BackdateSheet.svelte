@@ -7,6 +7,7 @@
   import { toDateKey } from '../lib/format'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
   import { saveErrorMessage } from '../lib/error-messages'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
   import MonthCalendar from './MonthCalendar.svelte'
@@ -60,7 +61,7 @@
       sheets.close()
       toasts.show(`已加入 ${tss.length} 筆`)
     } catch (e) {
-      toasts.show(saveErrorMessage(e))
+      toasts.show(saveErrorMessage(e, i18n.locale))
     }
   })
 </script>
@@ -68,7 +69,7 @@
 <Sheet title="補其他日期">
   <div class="nav">
     <button class="icon-btn" aria-label="上個月" onclick={() => shift(-1)}>‹</button>
-    <strong>{monthLabel(year, month0)}</strong>
+    <strong>{monthLabel(year, month0, i18n.dateLocale)}</strong>
     <button class="icon-btn" aria-label="下個月" onclick={() => shift(1)}>›</button>
   </div>
   <MonthCalendar {year} {month0} todayTs={store.now} {selected} {marked} ontoggle={toggle} />

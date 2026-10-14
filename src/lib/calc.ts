@@ -1,4 +1,5 @@
-import type { Item, ItemRecord } from './types'
+import type { Item, ItemRecord, Locale } from './types'
+import { messagesFor } from './i18n/messages'
 
 export const DAY_MS = 86_400_000
 const HOUR_MS = 3_600_000
@@ -36,10 +37,11 @@ export function since(ts: number, now: number): Since {
   return { kind: 'days', value: days, days }
 }
 
-export function sinceParts(s: Since): { number: string; unit: string } {
-  if (s.kind === 'now') return { number: '剛剛', unit: '' }
-  if (s.kind === 'hours') return { number: String(s.value), unit: '小時' }
-  return { number: String(s.value), unit: '天' }
+export function sinceParts(s: Since, locale: Locale): { number: string; unit: string } {
+  const m = messagesFor(locale).since
+  if (s.kind === 'now') return { number: m.now, unit: '' }
+  if (s.kind === 'hours') return { number: String(s.value), unit: m.hours(s.value) }
+  return { number: String(s.value), unit: m.days(s.value) }
 }
 
 export function numberStyle(s: Since): { fontSizePx: number; fontWeight: number } {

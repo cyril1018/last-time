@@ -35,23 +35,30 @@ describe('since', () => {
   it('< 60 min is 剛剛', () => {
     const s = since(now - 59 * 60_000, now)
     expect(s.kind).toBe('now')
-    expect(sinceParts(s)).toEqual({ number: '剛剛', unit: '' })
+    expect(sinceParts(s, 'zh-TW')).toEqual({ number: '剛剛', unit: '' })
   })
   it('same calendar day ≥ 60 min is N 小時', () => {
     const s = since(at(2026, 9, 20, 9, 0), now)
     expect(s).toMatchObject({ kind: 'hours', value: 5, days: 0 })
-    expect(sinceParts(s)).toEqual({ number: '5', unit: '小時' })
+    expect(sinceParts(s, 'zh-TW')).toEqual({ number: '5', unit: '小時' })
   })
   it('yesterday late night is 1 天 even if < 24h', () => {
     const s = since(at(2026, 9, 19, 23, 0), at(2026, 9, 20, 0, 30))
     expect(s).toMatchObject({ kind: 'days', value: 1, days: 1 })
-    expect(sinceParts(s)).toEqual({ number: '1', unit: '天' })
+    expect(sinceParts(s, 'zh-TW')).toEqual({ number: '1', unit: '天' })
   })
   it("'now' across midnight reports days 0, not the calendar-day difference", () => {
     expect(since(at(2026, 9, 19, 23, 50), at(2026, 9, 20, 0, 10))).toEqual({ kind: 'now', value: 0, days: 0 })
   })
   it('future timestamps clamp to 剛剛', () => {
     expect(since(now + 5 * 60_000, now).kind).toBe('now')
+  })
+  it('English since parts', () => {
+    const now = new Date(2026, 8, 20, 12).getTime()
+    expect(sinceParts(since(now - 5 * 60_000, now), 'en')).toEqual({ number: 'now', unit: '' })
+    expect(sinceParts(since(new Date(2026, 8, 20, 7).getTime(), now), 'en')).toEqual({ number: '5', unit: 'hr' })
+    expect(sinceParts(since(new Date(2026, 8, 19, 12).getTime(), now), 'en')).toEqual({ number: '1', unit: 'day' })
+    expect(sinceParts(since(new Date(2026, 8, 17, 12).getTime(), now), 'en')).toEqual({ number: '3', unit: 'days' })
   })
 })
 

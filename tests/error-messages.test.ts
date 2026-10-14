@@ -12,6 +12,15 @@ describe('saveErrorMessage', () => {
     [new Error('db'), '儲存失敗，請再試一次'],
     ['not even an error', '儲存失敗，請再試一次'],
   ])('%s → %s', (e, msg) => {
-    expect(saveErrorMessage(e)).toBe(msg)
+    expect(saveErrorMessage(e, 'zh-TW')).toBe(msg)
+  })
+  it.each([
+    [new EmptyNameError(), 'Please enter a name'],
+    [new DuplicateNameError(), 'An item with this name already exists'],
+    [new FutureTimeError(), "The time can't be in the future"],
+    [new InvalidTimeError(), 'Invalid time'],
+    [new Error('db'), "Couldn't save. Please try again."],
+  ])('English: %s → %s', (e, msg) => {
+    expect(saveErrorMessage(e, 'en')).toBe(msg)
   })
 })

@@ -31,7 +31,10 @@ export function monthGrid(year: number, month0: number, todayTs: number): MonthC
   return cells
 }
 
-export function monthLabel(year: number, month0: number): string {
+export function monthLabel(year: number, month0: number, dateLocale: string): string {
+  if (!/^zh/i.test(dateLocale)) {
+    return new Intl.DateTimeFormat(dateLocale, { year: 'numeric', month: 'long' }).format(new Date(year, month0, 1))
+  }
   return `${year} 年 ${month0 + 1} 月`
 }
 

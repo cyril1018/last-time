@@ -7,6 +7,7 @@
   import { QUICK_EMOJIS } from '../lib/emoji'
   import { saveDraft, loadDraft, clearDraft } from '../lib/draft'
   import { saveErrorMessage } from '../lib/error-messages'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import { exclusive } from '../lib/exclusive'
   import Sheet from './Sheet.svelte'
 
@@ -38,7 +39,7 @@
       clearDraft(KEY)
       sheets.close()
     } catch (e) {
-      toasts.show(saveErrorMessage(e)) // 請輸入名稱 / 已有同名項目 / 儲存失敗
+      toasts.show(saveErrorMessage(e, i18n.locale)) // 請輸入名稱 / 已有同名項目 / 儲存失敗
     }
   })
 

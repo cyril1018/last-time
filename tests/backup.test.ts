@@ -22,7 +22,7 @@ describe('serializeBackup', () => {
   })
   it('round-trips through parseBackup', () => {
     const text = serializeBackup([item('a')], [rec('r1', 'a')], settings, 0)
-    const res = parseBackup(text)
+    const res = parseBackup(text, '未命名')
     expect(res.ok).toBe(true)
     if (res.ok) {
       expect(res.backup.items).toEqual([item('a')])
@@ -34,14 +34,14 @@ describe('serializeBackup', () => {
 
 describe('parseBackup rejects', () => {
   it('non-JSON', () => {
-    expect(parseBackup('hello')).toEqual({ ok: false, reason: 'invalid-json' })
-    expect(parseBackup('')).toEqual({ ok: false, reason: 'invalid-json' })
+    expect(parseBackup('hello', '未命名')).toEqual({ ok: false, reason: 'invalid-json' })
+    expect(parseBackup('', '未命名')).toEqual({ ok: false, reason: 'invalid-json' })
   })
   it('JSON that is not a lasttime backup', () => {
-    expect(parseBackup('{"app":"other","items":[]}')).toEqual({ ok: false, reason: 'not-lasttime' })
-    expect(parseBackup('{"app":"lasttime","items":"nope"}')).toEqual({ ok: false, reason: 'not-lasttime' })
-    expect(parseBackup('[]')).toEqual({ ok: false, reason: 'not-lasttime' })
-    expect(parseBackup('null')).toEqual({ ok: false, reason: 'not-lasttime' })
+    expect(parseBackup('{"app":"other","items":[]}', '未命名')).toEqual({ ok: false, reason: 'not-lasttime' })
+    expect(parseBackup('{"app":"lasttime","items":"nope"}', '未命名')).toEqual({ ok: false, reason: 'not-lasttime' })
+    expect(parseBackup('[]', '未命名')).toEqual({ ok: false, reason: 'not-lasttime' })
+    expect(parseBackup('null', '未命名')).toEqual({ ok: false, reason: 'not-lasttime' })
   })
 })
 
@@ -64,7 +64,7 @@ describe('parseBackup tolerance', () => {
       ],
       settings: { theme: 'light', vibrate: 'yes', other: 1 },
       photos: {},
-    }))
+    }), '未命名')
     expect(res.ok).toBe(true)
     if (!res.ok) return
     expect(res.backup.items).toEqual([{ id: 'a', name: '吃藥', emoji: '📌', expectDays: null, archived: false, created: 10 }])
@@ -77,7 +77,7 @@ describe('parseBackup tolerance', () => {
     expect(res.backup.exportedAt).toBe('x')
   })
   it('missing records/settings are fine', () => {
-    const res = parseBackup('{"app":"lasttime","items":[]}')
+    const res = parseBackup('{"app":"lasttime","items":[]}', '未命名')
     expect(res.ok).toBe(true)
     if (res.ok) {
       expect(res.backup.records).toEqual([])
@@ -88,8 +88,19 @@ describe('parseBackup tolerance', () => {
 })
 
 describe('parseBackup cleanup', () => {
+  it('names an unnamed imported item in the language it is given', () => {
+    const text = JSON.stringify({ app: 'lasttime', items: [{ id: 'a', name: '  ', created: 1 }] })
+    const zh = parseBackup(text, '未命名')
+    const en = parseBackup(text, 'Untitled')
+    expect(zh.ok && zh.backup.items[0]!.name).toBe('未命名')
+    expect(en.ok && en.backup.items[0]!.name).toBe('Untitled')
+  })
+  it('never carries a language setting out of a backup', () => {
+    const res = parseBackup(JSON.stringify({ app: 'lasttime', items: [], settings: { theme: 'dark', language: 'en' } }), '未命名')
+    expect(res.ok && res.backup.settings).toEqual({ theme: 'dark' })
+  })
   const parse = (o: object) => {
-    const res = parseBackup(JSON.stringify({ app: 'lasttime', ...o }))
+    const res = parseBackup(JSON.stringify({ app: 'lasttime', ...o }), '未命名')
     if (!res.ok) throw new Error('rejected')
     return res.backup
   }
@@ -153,7 +164,7 @@ describe('parseBackup cleanup', () => {
 
 describe('summarize', () => {
   it('counts', () => {
-    const res = parseBackup(serializeBackup([item('a'), item('b')], [rec('r1', 'a')], settings, 0))
+    const res = parseBackup(serializeBackup([item('a'), item('b')], [rec('r1', 'a')], settings, 0), '未命名')
     if (!res.ok) throw new Error()
     expect(summarize(res.backup)).toEqual({ exportedAt: '1970-01-01T00:00:00.000Z', itemCount: 2, recordCount: 1 })
   })
@@ -166,7 +177,7 @@ describe('planMerge / planReplace', () => {
       app: 'lasttime',
       items: [{ id: 'a', name: 'theirs', created: 1 }, { id: 'b', name: 'b', created: 1 }],
       records: [{ id: 'r1', itemId: 'a', ts: 1 }, { id: 'r2', itemId: 'b', ts: 2 }, { id: 'r3', itemId: 'a', ts: 3 }, { id: 'r4', itemId: 'ghost', ts: 4 }],
-    }))
+    }), '未命名')
     if (!res.ok) throw new Error()
     return res.backup
   })()

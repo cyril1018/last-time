@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const undoLog = vi.hoisted(() => vi.fn())
-vi.mock('../src/lib/app-store', () => ({ store: { undoLog, settings: { vibrate: true } } }))
+vi.mock('../src/lib/app-store', () => ({ store: { undoLog, settings: { vibrate: true, language: 'zh-TW' } } }))
 const openSheet = vi.hoisted(() => vi.fn())
 vi.mock('../src/lib/sheet.svelte', () => ({ sheets: { open: openSheet } }))
 vi.mock('../src/lib/haptics', () => ({ vibrate: vi.fn() }))

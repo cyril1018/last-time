@@ -5,6 +5,7 @@
   import { logAndToast } from '../lib/log-flow'
   import { exclusive } from '../lib/exclusive'
   import { since, sinceParts, isDue, averageIntervalDays, formatIntervalDays } from '../lib/calc'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import Timeline from './Timeline.svelte'
 
   let { id }: { id: string } = $props()
@@ -13,7 +14,7 @@
   const records = $derived(store.recordsOf(id))
   const last = $derived(records[0]?.ts)
   const s = $derived(last === undefined ? null : since(last, store.now))
-  const parts = $derived(s ? sinceParts(s) : null)
+  const parts = $derived(s ? sinceParts(s, i18n.locale) : null)
   const due = $derived(item && s ? isDue(item.expectDays, s) : false)
   const avg = $derived(averageIntervalDays(records.map((r) => r.ts)))
 

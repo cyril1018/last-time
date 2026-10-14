@@ -5,6 +5,7 @@
   import { toasts } from '../lib/toast.svelte'
   import { serializeBackup, parseBackup } from '../lib/backup'
   import { formatBackupFileName, formatLong } from '../lib/format'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import { downloadText, shareText, canShareFiles, readFileText } from '../lib/files'
   import type { Theme } from '../lib/types'
 
@@ -16,12 +17,12 @@
     return serializeBackup(store.items, store.records, store.settings, store.now)
   }
   function exportBackup() {
-    downloadText(formatBackupFileName(store.now), backupText())
+    downloadText(formatBackupFileName(store.now, i18n.locale), backupText())
     store.updateSettings({ lastBackupAt: store.now, backupSnoozeUntil: null })
     toasts.show('已匯出備份')
   }
   async function shareBackup() {
-    const outcome = await shareText(formatBackupFileName(store.now), backupText())
+    const outcome = await shareText(formatBackupFileName(store.now, i18n.locale), backupText())
     if (outcome === 'shared') store.updateSettings({ lastBackupAt: store.now, backupSnoozeUntil: null })
     else if (outcome === 'unsupported') toasts.show('這個裝置不支援分享檔案')
     else if (outcome === 'failed') toasts.show('分享失敗，請改用匯出')
@@ -38,7 +39,7 @@
       toasts.show('讀取檔案失敗')
       return
     }
-    const res = parseBackup(text)
+    const res = parseBackup(text, i18n.t.backup.unnamed)
     input.value = ''
     if (!res.ok) { toasts.show('不是『上次』的備份檔'); return }
     sheets.open({ kind: 'import', backup: res.backup })
@@ -71,7 +72,7 @@
 
   <section>
     <h2>備份</h2>
-    <p class="muted small">上次備份：{store.settings.lastBackupAt === null ? '尚未備份' : formatLong(store.settings.lastBackupAt)}</p>
+    <p class="muted small">上次備份：{store.settings.lastBackupAt === null ? '尚未備份' : formatLong(store.settings.lastBackupAt, i18n.dateLocale)}</p>
     <div class="row">
       <button class="btn primary" onclick={exportBackup}>匯出備份</button>
       {#if canShareFiles()}<button class="btn" onclick={shareBackup}>分享備份</button>{/if}

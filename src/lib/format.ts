@@ -1,21 +1,40 @@
+import type { Locale } from './types'
+import { messagesFor } from './i18n/messages'
+
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'] as const
 const pad = (n: number) => String(n).padStart(2, '0')
+const isZh = (dateLocale: string) => /^zh/i.test(dateLocale)
 
+/** Intl output with narrow/no-break spaces folded to plain spaces, so the text is the same on every ICU. */
+function intl(ts: number, dateLocale: string, opts: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat(dateLocale, opts).format(new Date(ts)).replace(/[\u202f\u00a0]/g, ' ')
+}
+const MONTH_DAY: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+const CLOCK: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' }
+
+/** Fixed 24-hour HH:MM: what <input type="datetime-local"> needs. For display use formatClock. */
 export function formatTime(ts: number): string {
   const d = new Date(ts)
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function formatMonthDay(ts: number): string {
+export function formatClock(ts: number, dateLocale: string): string {
+  return isZh(dateLocale) ? formatTime(ts) : intl(ts, dateLocale, CLOCK)
+}
+
+export function formatMonthDay(ts: number, dateLocale: string): string {
+  if (!isZh(dateLocale)) return intl(ts, dateLocale, MONTH_DAY)
   const d = new Date(ts)
   return `${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-export function formatShort(ts: number): string {
-  return `${formatMonthDay(ts)} ${formatTime(ts)}`
+export function formatShort(ts: number, dateLocale: string): string {
+  if (!isZh(dateLocale)) return intl(ts, dateLocale, { ...MONTH_DAY, ...CLOCK })
+  return `${formatMonthDay(ts, dateLocale)} ${formatTime(ts)}`
 }
 
-export function formatLong(ts: number): string {
+export function formatLong(ts: number, dateLocale: string): string {
+  if (!isZh(dateLocale)) return intl(ts, dateLocale, { weekday: 'short', year: 'numeric', ...MONTH_DAY, ...CLOCK })
   const d = new Date(ts)
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 週${WEEKDAYS[d.getDay()]} ${formatTime(ts)}`
 }
@@ -25,8 +44,8 @@ export function toDateKey(ts: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-export function formatBackupFileName(now: number): string {
-  return `上次備份-${toDateKey(now)}.json`
+export function formatBackupFileName(now: number, locale: Locale): string {
+  return `${messagesFor(locale).backup.filePrefix}-${toDateKey(now)}.json`
 }
 
 export function toDatetimeLocalValue(ts: number): string {

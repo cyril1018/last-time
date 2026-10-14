@@ -2,6 +2,7 @@
   import type { ItemRecord } from '../lib/types'
   import { gapsBetween } from '../lib/calc'
   import { formatLong } from '../lib/format'
+  import { i18n } from '../lib/i18n/i18n.svelte'
 
   let { records, onpick }: { records: ItemRecord[]; onpick: (recordId: string) => void } = $props()
   const gaps = $derived(gapsBetween(records.map((r) => r.ts)))
@@ -12,7 +13,7 @@
     <li>
       <button class="entry" onclick={() => onpick(r.id)}>
         <span class="dot" aria-hidden="true"></span>
-        <span class="when">{formatLong(r.ts)}</span>
+        <span class="when">{formatLong(r.ts, i18n.dateLocale)}</span>
         {#if r.note}<span class="note muted">{r.note}</span>{/if}
       </button>
       {#if i < records.length - 1}

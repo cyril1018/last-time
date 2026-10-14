@@ -20,7 +20,8 @@ describe('monthGrid', () => {
     expect(g.find((c) => c.key === '2026-09-21')!.future).toBe(true)
     expect(g.find((c) => c.key === '2026-09-19')!.future).toBe(false)
   })
-  it('label', () => expect(monthLabel(2026, 8)).toBe('2026 年 9 月'))
+  it('label', () => expect(monthLabel(2026, 8, 'zh-TW')).toBe('2026 年 9 月'))
+  it('English label', () => expect(monthLabel(2026, 8, 'en-US')).toBe('September 2026'))
 })
 
 describe('combineDateTime', () => {

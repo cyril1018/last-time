@@ -3,6 +3,7 @@
   import type { ParsedBackup } from '../lib/backup'
   import { summarize, planMerge, planReplace } from '../lib/backup'
   import { store } from '../lib/app-store'
+  import { i18n } from '../lib/i18n/i18n.svelte'
   import { sheets } from '../lib/sheet.svelte'
   import { toasts } from '../lib/toast.svelte'
   import { exclusive } from '../lib/exclusive'
@@ -13,7 +14,7 @@
   const backup = untrack(() => backupProp)
   const s = summarize(backup)
   const exported = s.exportedAt ? new Date(s.exportedAt) : null
-  const exportedText = exported && !Number.isNaN(exported.getTime()) ? exported.toLocaleString('zh-TW') : '不明'
+  const exportedText = exported && !Number.isNaN(exported.getTime()) ? exported.toLocaleString(i18n.dateLocale) : '不明'
 
   // One guard for both buttons: a merge in flight blocks a replace and vice versa.
   const guarded = exclusive((task: () => Promise<void>) => task())
