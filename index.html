@@ -5,16 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#f6f7f4" />
     <script>
-      // Apply the saved theme before the first paint, so a dark-mode user never sees a light flash and the
-      // Android status bar matches from the start. App.svelte's theme effect takes over once mounted.
-      // Must match SETTINGS_KEY (src/lib/settings.ts) and the colours in App.svelte. Never throws.
+      // Apply the saved theme and language before the first paint, so a dark-mode user never sees a light
+      // flash, the Android status bar matches from the start, and <html lang> is right for screen readers.
+      // App.svelte's effects take over once mounted. Must match SETTINGS_KEY (src/lib/settings.ts), the
+      // colours in App.svelte, and resolveLocale/HTML_LANG (src/lib/i18n/locale.ts). Never throws.
       (function () {
-        var theme = null
-        try { theme = JSON.parse(localStorage.getItem('lasttime.settings') || 'null').theme } catch (e) {}
+        var saved = null
+        try { saved = JSON.parse(localStorage.getItem('lasttime.settings') || 'null') } catch (e) {}
+        var theme = null, language = null
+        try { theme = saved.theme; language = saved.language } catch (e) {}
         try {
           var dark = theme === 'dark' || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
           document.documentElement.dataset.theme = dark ? 'dark' : 'light'
           document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#121411' : '#f6f7f4')
+        } catch (e) {}
+        try {
+          var first = (navigator.languages && navigator.languages[0]) || ''
+          var zh = language === 'zh-TW' || (language !== 'en' && /^zh/i.test(first))
+          document.documentElement.lang = zh ? 'zh-Hant-TW' : 'en'
         } catch (e) {}
       })()
     </script>

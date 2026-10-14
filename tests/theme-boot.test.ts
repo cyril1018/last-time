@@ -2,7 +2,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { SETTINGS_KEY } from '../src/lib/settings'
+import { SETTINGS_KEY, loadSettings } from '../src/lib/settings'
+import { resolveLocale, HTML_LANG } from '../src/lib/i18n/locale'
 
 // The inline <script> in index.html that applies the saved theme before the first paint.
 const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8')
@@ -64,5 +65,43 @@ describe('index.html theme boot script', () => {
     expect(app).toContain("dark ? '#121411' : '#f6f7f4'")
     expect(boot).toContain("'#121411'")
     expect(boot).toContain("'#f6f7f4'")
+  })
+})
+
+function runLang(saved: string | null | (() => never), languages: readonly string[] | undefined) {
+  vi.stubGlobal('localStorage', {
+    getItem: (k: string) => {
+      if (typeof saved === 'function') return saved()
+      return k === SETTINGS_KEY ? saved : null
+    },
+  })
+  vi.stubGlobal('matchMedia', () => ({ matches: false }))
+  vi.stubGlobal('navigator', languages === undefined ? {} : { languages })
+  document.documentElement.lang = 'zh-Hant-TW'
+  new Function(boot!)()
+  return document.documentElement.lang
+}
+
+describe('index.html boot script: language', () => {
+  const savedValues = [null, '{nope', 'null', ...['system', 'zh-TW', 'en', 'fr', 42].map((l) => JSON.stringify({ language: l }))]
+  const languageLists: (readonly string[])[] = [['zh-TW'], ['zh-CN'], ['ZH'], ['en-US'], ['ja'], [], ['en-GB', 'zh-TW']]
+
+  it.each(savedValues.flatMap((s) => languageLists.map((l) => [s, l] as const)))('saved %s, phone %j agrees with resolveLocale', (saved, languages) => {
+    const storage = { getItem: (k: string) => (k === SETTINGS_KEY ? saved : null), setItem: () => {} }
+    const expected = HTML_LANG[resolveLocale(loadSettings(storage).language, languages)]
+    expect(runLang(saved, languages)).toBe(expected)
+  })
+
+  it('no navigator.languages → English, no throw', () => {
+    expect(runLang(null, undefined)).toBe('en')
+  })
+
+  it('storage that throws still follows the phone', () => {
+    expect(runLang(() => { throw new DOMException('blocked', 'SecurityError') }, ['zh-TW'])).toBe('zh-Hant-TW')
+  })
+
+  it('spells out the same <html lang> values as HTML_LANG', () => {
+    expect(boot).toContain(`'${HTML_LANG['zh-TW']}'`)
+    expect(boot).toContain(`'${HTML_LANG.en}'`)
   })
 })
