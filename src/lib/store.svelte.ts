@@ -303,13 +303,14 @@ export class Store {
     )
   }
 
-  /** Spec §7.6: wipe all data and reset every setting except theme and vibrate. */
+  /** Spec §7.6: wipe all data and reset every setting except theme, vibrate and language. */
   async clearAllData(): Promise<void> {
     await this.commit(
       () => ({ items: [], records: [] }),
       () => clearAll(this.db),
     )
-    this.updateSettings({ ...DEFAULT_SETTINGS, theme: this.settings.theme, vibrate: this.settings.vibrate })
+    const { theme, vibrate, language } = this.settings
+    this.updateSettings({ ...DEFAULT_SETTINGS, theme, vibrate, language })
   }
 
   updateSettings(patch: Partial<Settings>): void {

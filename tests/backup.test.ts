@@ -4,7 +4,7 @@ import type { Item, ItemRecord, Settings } from '../src/lib/types'
 
 const item = (id: string, over: Partial<Item> = {}): Item => ({ id, name: id, emoji: '📌', expectDays: null, archived: false, created: 1, ...over })
 const rec = (id: string, itemId: string, ts = 1): ItemRecord => ({ id, itemId, ts, note: '' })
-const settings: Settings = { theme: 'dark', vibrate: false, lastBackupAt: 5, backupSnoozeUntil: 6 }
+const settings: Settings = { theme: 'dark', language: 'en', vibrate: false, lastBackupAt: 5, backupSnoozeUntil: 6 }
 
 describe('serializeBackup', () => {
   it('writes the documented shape and only theme/vibrate from settings', () => {

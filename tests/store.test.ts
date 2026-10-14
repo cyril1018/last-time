@@ -296,12 +296,12 @@ describe('bulk', () => {
     expect(store.records.map((r) => r.id)).toEqual(['rx'])
     await expectSynced()
   })
-  it('clearAllData empties both and resets backup settings but keeps theme/vibrate', async () => {
+  it('clearAllData empties both and resets backup settings but keeps theme/vibrate/language', async () => {
     await store.addItemAndLog('吃藥')
-    store.updateSettings({ theme: 'dark', vibrate: false, lastBackupAt: 5, backupSnoozeUntil: 6 })
+    store.updateSettings({ theme: 'dark', language: 'en', vibrate: false, lastBackupAt: 5, backupSnoozeUntil: 6 })
     await store.clearAllData()
     expect(store.items).toEqual([])
-    expect(store.settings).toEqual({ ...DEFAULT_SETTINGS, theme: 'dark', vibrate: false })
+    expect(store.settings).toEqual({ ...DEFAULT_SETTINGS, theme: 'dark', language: 'en', vibrate: false })
     expect(await disk()).toEqual({ items: [], records: [] })
     await expectSynced()
   })

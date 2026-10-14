@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type Settings, type Theme } from './types'
+import { DEFAULT_SETTINGS, type LanguageSetting, type Settings, type Theme } from './types'
 
 export const SETTINGS_KEY = 'lasttime.settings'
 
@@ -8,6 +8,7 @@ export interface KeyValueStorage {
 }
 
 const THEMES: readonly Theme[] = ['system', 'light', 'dark']
+const LANGUAGES: readonly LanguageSetting[] = ['system', 'zh-TW', 'en']
 
 // Touching localStorage can throw (SecurityError when storage is blocked); settings then live in memory only.
 const noopStorage: KeyValueStorage = { getItem: () => null, setItem: () => {} }
@@ -32,6 +33,7 @@ export function loadSettings(storage: KeyValueStorage = defaultStorage()): Setti
   const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
   return {
     theme: THEMES.includes(o['theme'] as Theme) ? (o['theme'] as Theme) : DEFAULT_SETTINGS.theme,
+    language: LANGUAGES.includes(o['language'] as LanguageSetting) ? (o['language'] as LanguageSetting) : DEFAULT_SETTINGS.language,
     vibrate: typeof o['vibrate'] === 'boolean' ? o['vibrate'] : DEFAULT_SETTINGS.vibrate,
     lastBackupAt: num(o['lastBackupAt']),
     backupSnoozeUntil: num(o['backupSnoozeUntil']),

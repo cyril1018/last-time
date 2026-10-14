@@ -13,9 +13,21 @@ describe('settings', () => {
   })
   it('round-trips', () => {
     const s = memStorage()
-    saveSettings({ theme: 'dark', vibrate: false, lastBackupAt: 123, backupSnoozeUntil: null }, s)
+    saveSettings({ theme: 'dark', language: 'en', vibrate: false, lastBackupAt: 123, backupSnoozeUntil: null }, s)
     expect(s.map.has(SETTINGS_KEY)).toBe(true)
-    expect(loadSettings(s)).toEqual({ theme: 'dark', vibrate: false, lastBackupAt: 123, backupSnoozeUntil: null })
+    expect(loadSettings(s)).toEqual({ theme: 'dark', language: 'en', vibrate: false, lastBackupAt: 123, backupSnoozeUntil: null })
+  })
+  it.each([
+    [undefined, 'system'],
+    ['fr', 'system'],
+    [42, 'system'],
+    ['system', 'system'],
+    ['zh-TW', 'zh-TW'],
+    ['en', 'en'],
+  ])('language %j loads as %s', (stored, expected) => {
+    const s = memStorage()
+    s.setItem(SETTINGS_KEY, JSON.stringify({ theme: 'dark', language: stored }))
+    expect(loadSettings(s).language).toBe(expected)
   })
   it('ignores garbage and unknown theme', () => {
     const s = memStorage()
