@@ -64,3 +64,16 @@ export const QUICK_EMOJIS: readonly string[] = [
   '📌', '🛏️', '📞', '💊', '💧', '🔥', '💸', '🧹', '🧼', '🚗',
   '🏃', '🦷', '🩺', '🗑️', '🪴', '🍜', '🧾', '🔋', '💡', '🔧',
 ]
+
+/** Spec §5.1: the full picker. QUICK_EMOJIS is a shortcut row, so the two may overlap. Unicode ≤ 13.0 only. */
+export const EMOJI_CATEGORIES: ReadonlyArray<{ id: EmojiCategoryId; emojis: readonly string[] }> = [
+  { id: 'chores', emojis: ['🧹', '🧺', '🧼', '🧽', '🗑️', '♻️', '🛏️', '🪟', '🧊', '🍳', '🍽️', '🚿', '🛁', '🚽'] },
+  { id: 'care', emojis: ['✂️', '💇', '💈', '🪒', '🦷', '💅', '🧴', '👕', '👟'] },
+  { id: 'health', emojis: ['🩺', '💊', '💉', '🩹', '🌡️', '👓', '😴', '🧘'] },
+  { id: 'exercise', emojis: ['🏃', '🚶', '🏋️', '🏊', '🚴', '⚽', '🏀', '🎾', '🧗'] },
+  { id: 'living', emojis: ['🐱', '🐶', '🐟', '🐦', '🐢', '🪴', '🌸', '🌱', '🌵'] },
+  { id: 'transport', emojis: ['🚗', '⛽', '🛵', '🚲', '🔧', '🅿️', '✈️', '🧳'] },
+  { id: 'money', emojis: ['🧾', '💸', '💳', '🏦', '💰', '📮', '📅'] },
+  { id: 'home', emojis: ['📌', '🔋', '💡', '💧', '🔥', '❄️', '🔌', '🧯', '🔑', '📦', '🔄'] },
+  { id: 'social', emojis: ['📞', '🍻', '🍜', '☕', '🎂', '🎁', '📚', '🎬', '🎮', '🎵', '💆', '📷'] },
+]

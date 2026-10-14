@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { guessEmoji, QUICK_EMOJIS, DEFAULT_EMOJI, EMOJI_RULES } from '../src/lib/emoji'
+import { guessEmoji, QUICK_EMOJIS, DEFAULT_EMOJI, EMOJI_RULES, EMOJI_CATEGORIES } from '../src/lib/emoji'
+import { zhTW } from '../src/lib/i18n/zh-TW'
+import { en } from '../src/lib/i18n/en'
 
 describe('guessEmoji (Chinese)', () => {
   it.each([
@@ -118,5 +120,29 @@ describe('QUICK_EMOJIS', () => {
   it('swapped 🫧 for 🧼, which older phones can show', () => {
     expect(QUICK_EMOJIS).toContain('🧼')
     expect(QUICK_EMOJIS).not.toContain('🫧')
+  })
+})
+
+describe('EMOJI_CATEGORIES', () => {
+  const all = new Set(EMOJI_CATEGORIES.flatMap((c) => c.emojis))
+  it('has the 9 categories and 87 emoji of spec §5.1', () => {
+    expect(EMOJI_CATEGORIES.map((c) => c.id)).toEqual(['chores', 'care', 'health', 'exercise', 'living', 'transport', 'money', 'home', 'social'])
+    expect(EMOJI_CATEGORIES.reduce((n, c) => n + c.emojis.length, 0)).toBe(87)
+  })
+  it('contains every quick emoji and every rule emoji', () => {
+    for (const e of QUICK_EMOJIS) expect(all).toContain(e)
+    for (const r of EMOJI_RULES) expect(all).toContain(r.emoji)
+  })
+  it('has no duplicates inside a category', () => {
+    for (const c of EMOJI_CATEGORIES) expect(new Set(c.emojis).size).toBe(c.emojis.length)
+  })
+  it('names every category in both languages', () => {
+    for (const c of EMOJI_CATEGORIES) {
+      expect(zhTW.emojiCategories[c.id]).toBeTruthy()
+      expect(en.emojiCategories[c.id]).toBeTruthy()
+    }
+  })
+  it('has no emoji newer than Unicode 13 that this list is known to tempt (🫧 🪥 🛞 🩼)', () => {
+    for (const e of ['🫧', '🪥', '🛞', '🩼']) expect(all).not.toContain(e)
   })
 })
