@@ -43,7 +43,7 @@ export const en: Messages = {
   empty: {
     intro: "Note when you last did something, and see at a glance how many days it's been.",
     howTo: 'Type something below and press Done to log it for the first time.',
-    samples: ['Take meds', 'Change water filter', 'Replace gas tank', 'Call mom and dad', 'Haircut', 'Pay bills'],
+    samples: ['Take meds', 'Change water filter', 'Replace gas tank', 'Go running', 'Haircut', 'Pay bills'],
   },
   banner: {
     text: "Your data only lives in this phone's browser. Consider backing it up.",

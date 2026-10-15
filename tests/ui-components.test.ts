@@ -93,7 +93,7 @@ describe('EmptyState.svelte in English', () => {
     flushSync()
     expect(target.textContent).toContain("Note when you last did something")
     const chips = [...target.querySelectorAll('.chips button')].map((b) => b.textContent)
-    expect(chips).toEqual(['Take meds', 'Change water filter', 'Replace gas tank', 'Call mom and dad', 'Haircut', 'Pay bills'])
+    expect(chips).toEqual(['Take meds', 'Change water filter', 'Replace gas tank', 'Go running', 'Haircut', 'Pay bills'])
   })
   it('switches language while mounted', () => {
     component = mount(EmptyState, { target, props: { onpick: () => {} } })

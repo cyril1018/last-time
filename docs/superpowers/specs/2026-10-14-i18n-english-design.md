@@ -142,7 +142,7 @@ src/lib/i18n/
 | 搜尋或新增一件事 | Search or add something |
 | 未命名 | Untitled |
 
-空狀態的範例詞（點了會帶入搜尋框）英文版：`Take meds`、`Change water filter`、`Replace gas tank`、`Call mom and dad`、`Haircut`、`Pay bills`。
+空狀態的範例詞（點了會帶入搜尋框）英文版：`Take meds`、`Change water filter`、`Replace gas tank`、`Go running`、`Haircut`、`Pay bills`。
 
 ### 3.3 純函式改為接收語言
 

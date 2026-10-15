@@ -2,7 +2,7 @@
 
 English | [繁體中文](README.zh-TW.md)
 
-**Last Time** tracks how many days it has been since you last did something: take meds, change the water filter, call your parents. Press and hold an item to log it; undo is one tap away.
+**Last Time** tracks how many days it has been since you last did something: take meds, change the water filter, go for a run. Press and hold an item to log it; undo is one tap away.
 
 Website: https://cyril1018.github.io/last-time/
 
