@@ -10,6 +10,12 @@
 
 沒有帳號、沒有伺服器、沒有廣告。資料只存在你手機的瀏覽器裡。
 
+<p>
+  <img src="docs/screenshots/zh-home.png" width="250" alt="首頁：每個項目顯示距上次幾天，該做了的會變紅" />
+  <img src="docs/screenshots/zh-detail.png" width="250" alt="項目細節：距上次、平均間隔、次數和完整紀錄" />
+  <img src="docs/screenshots/zh-icons.png" width="250" alt="編輯項目：常用圖示和「更多圖示」" />
+</p>
+
 ## 安裝到手機（Android Chrome）
 
 1. 用 Chrome 打開上面的網址。

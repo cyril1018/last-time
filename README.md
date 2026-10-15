@@ -8,6 +8,12 @@ Website: https://cyril1018.github.io/last-time/
 
 No account, no server, no ads. Your data stays in your phone's browser. The interface is in English or Traditional Chinese, following your phone's language; you can change it in Settings.
 
+<p>
+  <img src="docs/screenshots/en-home.png" width="250" alt="Home: each item shows how many days since you last did it; overdue ones are red" />
+  <img src="docs/screenshots/en-detail.png" width="250" alt="Item details: days since last, average gap, count and the full history" />
+  <img src="docs/screenshots/en-icons.png" width="250" alt="Editing an item: common icons plus the More icons picker" />
+</p>
+
 ## Install on Android (Chrome)
 
 1. Open the website in Chrome.
